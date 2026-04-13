@@ -410,7 +410,8 @@ table.t td:first-child{color:var(--text);font-weight:500}
 .nav-btns button.nxt:hover{background:#3a8be8}
 
 /* ── CHAPTERS ── */
-.chapter{display:none;animation:fadeIn .3s ease}
+.chapter{display:none;animation:fadeIn .3s ease;position:relative}
+.chapter::before{content:'';position:fixed;top:50%;left:2%;transform:translateY(-50%);width:330px;height:330px;background:url('logo.png') no-repeat center/contain;opacity:0.05;pointer-events:none;z-index:0;filter:grayscale(1) brightness(2)}
 .chapter.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 #home-view{animation:fadeIn .4s ease}
@@ -461,6 +462,36 @@ footer span{color:var(--accent)}
 /* ── SCROLL REVEAL ── */
 .reveal{opacity:0;transform:translateY(16px);transition:all .45s ease}
 .reveal.visible{opacity:1;transform:translateY(0)}
+
+/* ── ZONE CONFIGURATOR ── */
+.shape-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.shape-card{border:1px solid var(--border);border-radius:var(--r);padding:10px 6px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg2)}
+.shape-card:hover{border-color:var(--border2)}
+.shape-card.active{border-color:var(--accent);background:rgba(79,156,249,0.08)}
+.shape-card svg{display:block;margin:0 auto 6px}
+.shape-card .sc-label{font-size:11px;color:var(--text2)}
+.shape-card.active .sc-label{color:var(--accent)}
+.toggle-row{display:flex;gap:8px;margin:10px 0;flex-wrap:wrap}
+.tog-btn{padding:5px 13px;border:1px solid var(--border);border-radius:20px;font-size:12px;cursor:pointer;color:var(--text2);background:transparent;transition:all .2s;font-family:'DM Sans',sans-serif}
+.tog-btn:hover{border-color:var(--border2);color:var(--text)}
+.tog-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(79,156,249,0.08)}
+.dim-row{display:flex;gap:12px;margin:12px 0;flex-wrap:wrap}
+.dim-field{flex:1;min-width:120px}
+.dim-field label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px}
+.dim-field input[type=number]{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;color:var(--text);font-size:14px;font-family:'DM Mono',monospace;-moz-appearance:textfield}
+.dim-field input[type=number]::-webkit-inner-spin-button{opacity:.4}
+.dim-field input[type=number]:focus{outline:none;border-color:var(--accent)}
+.terrain-hint{font-size:12px;color:var(--accent3);background:rgba(249,168,79,0.07);border:1px solid rgba(249,168,79,0.2);border-radius:var(--r);padding:8px 12px;margin:10px 0;display:none}
+.terrain-hint.show{display:block}
+/* Waypoints preview */
+.wp-preview{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin:12px 0}
+.wp-preview-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px}
+.wp-preview-head span{color:var(--text3);font-family:'DM Mono',monospace}
+.wp-preview-head strong{color:var(--text2)}
+.wp-stats{display:flex;gap:16px;padding:10px 14px;border-top:1px solid var(--border);flex-wrap:wrap}
+.wp-stat{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace}
+.wp-stat b{color:var(--accent);font-weight:500}
+@media(max-width:500px){.shape-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -795,20 +826,91 @@ footer span{color:var(--accent)}
     <div class="warn-box">120 m AGL maximum en catégorie OPEN en France. En zone CTR (aéroport proche), la limite peut descendre à 50 m sans accord préalable.</div>
   </div>
 
+  <!-- ── ZONE CONFIGURATOR ── -->
+  <div class="section-block reveal">
+    <div class="section-tag">Définir la zone</div>
+    <div class="section-title2">Forme, dimensions et terrain</div>
+    <p class="section-desc">Configure ta zone ci-dessous — le calculateur et le tracé des waypoints se mettent à jour en temps réel.</p>
+
+    <!-- Shape -->
+    <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Forme de la zone</div>
+    <div class="shape-grid">
+      <div class="shape-card active" id="sh-rect" onclick="setShape('rect')">
+        <svg width="40" height="28" viewBox="0 0 40 28"><rect x="2" y="2" width="36" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        <div class="sc-label">Rectangulaire</div>
+      </div>
+      <div class="shape-card" id="sh-long" onclick="setShape('long')">
+        <svg width="40" height="28" viewBox="0 0 40 28"><rect x="2" y="8" width="36" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        <div class="sc-label">Allongée</div>
+      </div>
+      <div class="shape-card" id="sh-lshape" onclick="setShape('lshape')">
+        <svg width="40" height="28" viewBox="0 0 40 28"><polyline points="2,2 2,26 26,26 26,14 14,14 14,2 2,2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        <div class="sc-label">En L</div>
+      </div>
+      <div class="shape-card" id="sh-irr" onclick="setShape('irr')">
+        <svg width="40" height="28" viewBox="0 0 40 28"><polygon points="8,24 2,12 10,2 30,4 38,14 28,26" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        <div class="sc-label">Irrégulière</div>
+      </div>
+    </div>
+
+    <!-- Dimensions -->
+    <div class="dim-row">
+      <div class="dim-field">
+        <label>Largeur (m)</label>
+        <input type="number" id="dim-w" value="300" min="50" max="5000" step="10" oninput="calc()">
+      </div>
+      <div class="dim-field">
+        <label>Longueur (m)</label>
+        <input type="number" id="dim-h" value="300" min="50" max="5000" step="10" oninput="calc()">
+      </div>
+    </div>
+
+    <!-- Terrain -->
+    <div style="font-size:12px;color:var(--text2);margin:10px 0 6px">Type de terrain</div>
+    <div class="toggle-row">
+      <button class="tog-btn active" id="t-flat" onclick="setTerrain('flat')">Plat</button>
+      <button class="tog-btn" id="t-slope" onclick="setTerrain('slope')">Pentu / vallonné</button>
+      <button class="tog-btn" id="t-build" onclick="setTerrain('build')">Bâtiments</button>
+    </div>
+    <div class="terrain-hint" id="terrain-hint"></div>
+
+    <!-- Orientation -->
+    <div style="font-size:12px;color:var(--text2);margin:10px 0 6px">Orientation des lignes de vol</div>
+    <div class="toggle-row">
+      <button class="tog-btn active" id="or-auto" onclick="setOrient('auto')">Auto (grand axe)</button>
+      <button class="tog-btn" id="or-ns" onclick="setOrient('ns')">N → S</button>
+      <button class="tog-btn" id="or-ew" onclick="setOrient('ew')">E → O</button>
+    </div>
+  </div>
+
+  <!-- ── CALCULATEUR ── -->
   <div class="section-block reveal">
     <div class="section-tag">Calculateur interactif</div>
     <div class="section-title2">Estimez votre mission</div>
     <div class="calc-block">
       <div class="sl-row"><label>Altitude de vol</label><input type="range" min="40" max="120" value="80" step="10" id="sl-alt" oninput="calc()"><output id="o-alt">80 m</output></div>
-      <div class="sl-row"><label>Surface à couvrir</label><input type="range" min="1" max="60" value="10" step="1" id="sl-surf" oninput="calc()"><output id="o-surf">10 ha</output></div>
       <div class="sl-row"><label>Recouvrement frontal</label><input type="range" min="70" max="90" value="80" step="5" id="sl-front" oninput="calc()"><output id="o-front">80 %</output></div>
-      <div class="sl-row"><label>Recouvrement latéral</label><input type="range" min="60" max="80" value="70" step="5" id="sl-lat" oninput="calc()"><output id="o-lat">70 %</output></div>
+      <div class="sl-row"><label>Recouvrement latéral</label><input type="range" min="60" max="85" value="70" step="5" id="sl-lat" oninput="calc()"><output id="o-lat">70 %</output></div>
       <div class="calc-result" id="calc-res">
         <div class="cr-item"><div class="crv" id="cr-gsd">—</div><div class="crl">GSD (cm/px)</div></div>
+        <div class="cr-item"><div class="crv" id="cr-surf">—</div><div class="crl">Surface (ha)</div></div>
         <div class="cr-item"><div class="crv" id="cr-photos">—</div><div class="crl">Photos estimées</div></div>
         <div class="cr-item"><div class="crv" id="cr-dur">—</div><div class="crl">Durée (min)</div></div>
         <div class="cr-item"><div class="crv" id="cr-bat">—</div><div class="crl">Batteries</div></div>
+        <div class="cr-item"><div class="crv" id="cr-lines">—</div><div class="crl">Lignes de vol</div></div>
       </div>
+    </div>
+
+    <!-- Waypoints preview -->
+    <div class="wp-preview" id="wp-preview">
+      <div class="wp-preview-head">
+        <strong>Tracé des waypoints</strong>
+        <span id="wp-orient-label">lignes horizontales</span>
+      </div>
+      <div style="padding:12px;text-align:center">
+        <svg id="wp-svg" width="100%" viewBox="0 0 320 200" style="max-width:400px;display:block;margin:0 auto"></svg>
+      </div>
+      <div class="wp-stats" id="wp-stats"></div>
     </div>
   </div>
 
@@ -1206,36 +1308,214 @@ document.querySelectorAll('.reveal').forEach(function(el) {
   observer.observe(el);
 });
 
-// Calculator
-function calc() {
-  var alt = parseInt(document.getElementById('sl-alt').value);
-  var surf = parseInt(document.getElementById('sl-surf').value);
-  var front = parseInt(document.getElementById('sl-front').value) / 100;
-  var lat = parseInt(document.getElementById('sl-lat').value) / 100;
+// ── Zone configurator state ──
+var _shape = 'rect', _terrain = 'flat', _orient = 'auto';
 
-  document.getElementById('o-alt').value = alt + ' m';
-  document.getElementById('o-surf').value = surf + ' ha';
-  document.getElementById('o-front').value = Math.round(front * 100) + ' %';
-  document.getElementById('o-lat').value = Math.round(lat * 100) + ' %';
-
-  var gsd = Math.round(alt / 24 * 0.21 * 10) / 10;
-  var fovW = 36 * (alt / 24);
-  var fovH = 24 * (alt / 24);
-  var lineSpacing = Math.round(fovW * (1 - lat));
-  var side = Math.round(Math.sqrt(surf * 10000));
-  var nLines = Math.ceil(side / lineSpacing) + 2;
-  var stepFront = Math.round(fovH * (1 - front));
-  var photosLine = Math.ceil(side / stepFront) + 2;
-  var totalPhotos = nLines * photosLine;
-  var distKm = (nLines * side) / 1000;
-  var durMin = Math.round(distKm * 1000 / 10 / 60);
-  var bats = Math.ceil(durMin / 38);
-
-  document.getElementById('cr-gsd').textContent = gsd + ' cm';
-  document.getElementById('cr-photos').textContent = totalPhotos;
-  document.getElementById('cr-dur').textContent = durMin + ' min';
-  document.getElementById('cr-bat').textContent = bats;
+function setShape(s) {
+  _shape = s;
+  ['rect','long','lshape','irr'].forEach(function(id){ document.getElementById('sh-'+id).classList.remove('active'); });
+  document.getElementById('sh-'+s).classList.add('active');
+  // Suggest dimensions for elongated
+  if (s === 'long') {
+    var h = parseInt(document.getElementById('dim-h').value) || 300;
+    if (parseInt(document.getElementById('dim-w').value) >= h) document.getElementById('dim-w').value = Math.round(h / 3);
+  }
+  calc();
 }
+
+function setTerrain(t) {
+  _terrain = t;
+  ['flat','slope','build'].forEach(function(id){ document.getElementById('t-'+id).classList.remove('active'); });
+  document.getElementById('t-'+t).classList.add('active');
+  var hint = document.getElementById('terrain-hint');
+  var front = document.getElementById('sl-front');
+  var lat = document.getElementById('sl-lat');
+  if (t === 'flat') {
+    hint.classList.remove('show');
+    front.value = 80; lat.value = 70;
+  } else if (t === 'slope') {
+    hint.textContent = 'Terrain pentu : recouvrement augmenté automatiquement. Active le mode "Suivi de terrain" dans DJI Fly pour maintenir une altitude constante au-dessus du sol.';
+    hint.classList.add('show');
+    front.value = 85; lat.value = 75;
+  } else if (t === 'build') {
+    hint.textContent = 'Bâtiments : recouvrement maximal recommandé. Envisage une double grille à 90° (disponible dans Pix4Dcapture) pour capturer les façades.';
+    hint.classList.add('show');
+    front.value = 85; lat.value = 80;
+  }
+  document.getElementById('o-front').value = front.value + ' %';
+  document.getElementById('o-lat').value = lat.value + ' %';
+  calc();
+}
+
+function setOrient(o) {
+  _orient = o;
+  ['auto','ns','ew'].forEach(function(id){ document.getElementById('or-'+id).classList.remove('active'); });
+  document.getElementById('or-'+o).classList.add('active');
+  calc();
+}
+
+// ── Main calculator ──
+function calc() {
+  var alt  = parseInt(document.getElementById('sl-alt').value) || 80;
+  var front = parseInt(document.getElementById('sl-front').value) / 100;
+  var lat   = parseInt(document.getElementById('sl-lat').value) / 100;
+  var zoneW = Math.max(50, parseInt(document.getElementById('dim-w').value) || 300);
+  var zoneH = Math.max(50, parseInt(document.getElementById('dim-h').value) || 300);
+
+  document.getElementById('o-alt').value   = alt + ' m';
+  document.getElementById('o-front').value = Math.round(front * 100) + ' %';
+  document.getElementById('o-lat').value   = Math.round(lat * 100) + ' %';
+
+  // GSD: Air 3S sensor 17.3×13mm, focal 24mm equiv (actual 12.38mm), 8064×6048px
+  var gsd = Math.round(alt * 13 / 24 / 6048 * 1000 * 10) / 10; // cm/px approx
+
+  // FOV footprint at altitude
+  var fovW = 17.3 * alt / 12.38;  // metres
+  var fovH = 13   * alt / 12.38;
+
+  // Line spacing (lateral) and trigger interval (frontal)
+  var lineSpacing = fovW * (1 - lat);
+  var stepFront   = fovH * (1 - front);
+
+  // Determine flight direction based on orientation + shape
+  var flyW, flyH; // flyW = length of each line, flyH = width covered by lines
+  var orient = _orient;
+  if (orient === 'auto') orient = (zoneW >= zoneH) ? 'ew' : 'ns';
+
+  if (orient === 'ew') { flyW = zoneW; flyH = zoneH; }
+  else                 { flyW = zoneH; flyH = zoneW; }
+
+  // Shape coverage factor (L-shape and irregular cover ~70% of bounding box)
+  var coverFactor = (_shape === 'lshape' || _shape === 'irr') ? 0.70 : 1.0;
+
+  var nLines      = Math.ceil(flyH / lineSpacing) + 2;
+  var photosLine  = Math.ceil(flyW / stepFront) + 2;
+  var totalPhotos = Math.round(nLines * photosLine * coverFactor);
+  var surf        = Math.round(zoneW * zoneH * coverFactor / 10000 * 10) / 10;
+  var distM       = nLines * flyW * coverFactor;
+  var durMin      = Math.round(distM / 10 / 60);   // 10 m/s cruise
+  var bats        = Math.ceil(durMin / 38);
+
+  document.getElementById('cr-gsd').textContent    = gsd + ' cm';
+  document.getElementById('cr-surf').textContent   = surf + ' ha';
+  document.getElementById('cr-photos').textContent = totalPhotos;
+  document.getElementById('cr-dur').textContent    = durMin + ' min';
+  document.getElementById('cr-bat').textContent    = bats;
+  document.getElementById('cr-lines').textContent  = nLines;
+
+  drawWaypoints(zoneW, zoneH, lineSpacing, stepFront, orient, nLines, photosLine, coverFactor);
+}
+
+// ── Waypoints SVG renderer ──
+function drawWaypoints(zoneW, zoneH, lineSpacing, stepFront, orient, nLines, photosLine, cover) {
+  var svg = document.getElementById('wp-svg');
+  var VW = 320, VH = 200, pad = 24;
+  var areaW = VW - pad*2, areaH = VH - pad*2;
+
+  // Scale zone into SVG
+  var scaleX = areaW / zoneW, scaleY = areaH / zoneH;
+  var sc = Math.min(scaleX, scaleY);
+  var dW = zoneW * sc, dH = zoneH * sc;
+  var ox = pad + (areaW - dW) / 2, oy = pad + (areaH - dH) / 2;
+
+  // Build zone shape path
+  var zonePath;
+  if (_shape === 'lshape') {
+    var mx = ox + dW * 0.6, my = oy + dH * 0.5;
+    zonePath = 'M'+ox+','+oy+' L'+(ox+dW)+','+oy+' L'+(ox+dW)+','+my+' L'+mx+','+my+' L'+mx+','+(oy+dH)+' L'+ox+','+(oy+dH)+' Z';
+  } else if (_shape === 'irr') {
+    zonePath = 'M'+(ox+dW*0.2)+','+(oy+dH)+' L'+ox+','+(oy+dH*0.55)+' L'+(ox+dW*0.25)+','+oy+' L'+(ox+dW*0.75)+','+oy+' L'+(ox+dW)+','+(oy+dH*0.4)+' L'+(ox+dW*0.7)+','+(oy+dH)+' Z';
+  } else {
+    zonePath = 'M'+ox+','+oy+' L'+(ox+dW)+','+oy+' L'+(ox+dW)+','+(oy+dH)+' L'+ox+','+(oy+dH)+' Z';
+  }
+
+  var lineSpSc = lineSpacing * sc;
+  var stepSc   = stepFront * sc;
+
+  // Build lines
+  var lines = '', dots = '', dotCount = 0;
+  var clipId = 'wpclip';
+
+  for (var i = 0; i < nLines; i++) {
+    var forward = (i % 2 === 0);
+    var x1,y1,x2,y2;
+    if (orient === 'ew') {
+      var ly = oy + lineSpSc * i;
+      if (ly > oy + dH + lineSpSc) break;
+      x1 = ox; x2 = ox + dW; y1 = y2 = ly;
+      if (!forward) { var tmp=x1; x1=x2; x2=tmp; }
+      lines += '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#4f9cf9" stroke-width="1.2" stroke-linecap="round" clip-path="url(#'+clipId+')"/>';
+      // Arrow
+      var ax = forward ? x2-6 : x2+6;
+      lines += '<polygon points="'+(x2+(forward?-5:5))+','+(y2-3)+' '+(x2+(forward?1:-1))+','+y2+' '+(x2+(forward?-5:5))+','+(y2+3)+'" fill="#4f9cf9" opacity="0.7"/>';
+      // Trigger dots
+      var nx = Math.ceil(dW / stepSc);
+      for (var j = 0; j <= nx; j++) {
+        var dx = forward ? ox + stepSc*j : ox+dW - stepSc*j;
+        if (dotCount < 200) {
+          dots += '<circle cx="'+dx+'" cy="'+ly+'" r="1.5" fill="#7ee8a2" clip-path="url(#'+clipId+')"/>';
+          dotCount++;
+        }
+      }
+    } else {
+      var lx = ox + lineSpSc * i;
+      if (lx > ox + dW + lineSpSc) break;
+      x1 = x2 = lx; y1 = oy; y2 = oy + dH;
+      if (!forward) { var tmp2=y1; y1=y2; y2=tmp2; }
+      lines += '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#4f9cf9" stroke-width="1.2" stroke-linecap="round" clip-path="url(#'+clipId+')"/>';
+      lines += '<polygon points="'+(x2-3)+','+(y2+(forward?-5:5))+' '+x2+','+(y2+(forward?1:-1))+' '+(x2+3)+','+(y2+(forward?-5:5))+'" fill="#4f9cf9" opacity="0.7"/>';
+      var ny = Math.ceil(dH / stepSc);
+      for (var jj = 0; jj <= ny; jj++) {
+        var dy = forward ? oy+stepSc*jj : oy+dH-stepSc*jj;
+        if (dotCount < 200) {
+          dots += '<circle cx="'+lx+'" cy="'+dy+'" r="1.5" fill="#7ee8a2" clip-path="url(#'+clipId+')"/>';
+          dotCount++;
+        }
+      }
+    }
+  }
+
+  // Turn connectors
+  var turns = '';
+  for (var t = 0; t < nLines-1; t++) {
+    if (orient === 'ew') {
+      var ty1 = oy + lineSpSc*t, ty2 = oy + lineSpSc*(t+1);
+      var tx = (t%2===0) ? ox+dW : ox;
+      turns += '<line x1="'+tx+'" y1="'+ty1+'" x2="'+tx+'" y2="'+ty2+'" stroke="#555b72" stroke-width="1" stroke-dasharray="3 3"/>';
+    } else {
+      var tx1 = ox+lineSpSc*t, tx2 = ox+lineSpSc*(t+1);
+      var ty = (t%2===0) ? oy+dH : oy;
+      turns += '<line x1="'+tx1+'" y1="'+ty+'" x2="'+tx2+'" y2="'+ty+'" stroke="#555b72" stroke-width="1" stroke-dasharray="3 3"/>';
+    }
+  }
+
+  // Start marker
+  var sx = (orient==='ew') ? ox : ox;
+  var sy = (orient==='ew') ? oy : oy;
+  var startMark = '<circle cx="'+sx+'" cy="'+sy+'" r="4" fill="#4f9cf9"/><text x="'+(sx+6)+'" y="'+(sy-5)+'" font-size="9" fill="#4f9cf9" font-family="monospace">Départ</text>';
+
+  // Orient label
+  var orientLabel = orient==='ew' ? 'lignes E → O' : 'lignes N → S';
+  document.getElementById('wp-orient-label').textContent = orientLabel;
+
+  // Legend
+  var legend = '<circle cx="'+(VW-80)+'" cy="'+(VH-10)+'" r="2.5" fill="#7ee8a2"/><text x="'+(VW-74)+'" y="'+(VH-7)+'" font-size="8" fill="#555b72" font-family="monospace">déclenchement photo</text>';
+
+  svg.setAttribute('viewBox','0 0 '+VW+' '+VH);
+  svg.innerHTML =
+    '<defs><clipPath id="'+clipId+'"><path d="'+zonePath+'"/></clipPath></defs>'+
+    '<path d="'+zonePath+'" fill="rgba(79,156,249,0.05)" stroke="rgba(79,156,249,0.35)" stroke-width="1.5" stroke-dasharray="5 4"/>'+
+    turns + lines + dots + startMark + legend;
+
+  // Stats bar
+  var distKm = Math.round(nLines * (orient==='ew'?zoneW:zoneH) * cover / 100) / 10;
+  document.getElementById('wp-stats').innerHTML =
+    '<div class="wp-stat">Lignes : <b>'+nLines+'</b></div>'+
+    '<div class="wp-stat">Espacement : <b>'+Math.round(lineSpacing)+' m</b></div>'+
+    '<div class="wp-stat">Distance totale : <b>~'+distKm+' km</b></div>'+
+    '<div class="wp-stat">Photos/ligne : <b>'+photosLine+'</b></div>';
+}
+
 calc();
 
 // Sticky progress scroll

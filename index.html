@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photogrammétrie DJI Air 3S — Guide complet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0f14;
+  --bg2: #13161e;
+  --bg3: #1a1e28;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --accent: #4f9cf9;
+  --accent2: #7ee8a2;
+  --accent3: #f9a84f;
+  --text: #e8eaf0;
+  --text2: #8a8fa8;
+  --text3: #555b72;
+  --danger: #f96060;
+  --warn: #f9c84f;
+  --r: 10px;
+  --r2: 16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── TOPBAR ── */
+.topbar{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;height:56px;
+  background:rgba(13,15,20,0.85);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.logo{
+  font-family:'Syne',sans-serif;font-weight:800;font-size:15px;
+  letter-spacing:-.3px;color:var(--text);
+  display:flex;align-items:center;gap:8px;
+}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.8)}}
+.nav-pills{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.nav-pills::-webkit-scrollbar{display:none}
+.pill{
+  padding:5px 12px;border-radius:20px;
+  font-size:12px;font-weight:500;white-space:nowrap;
+  background:transparent;border:1px solid var(--border);
+  color:var(--text2);cursor:pointer;transition:all .2s;
+}
+.pill:hover{border-color:var(--border2);color:var(--text)}
+.pill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.progress-bar{
+  position:fixed;top:56px;left:0;height:2px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  transition:width .4s ease;z-index:99;
+}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:80px 24px 48px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.hero-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size:48px 48px;
+  mask-image:radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 100%);
+}
+.hero-glow{
+  position:absolute;top:20%;left:50%;transform:translateX(-50%);
+  width:600px;height:300px;
+  background:radial-gradient(ellipse, rgba(79,156,249,0.12) 0%, transparent 70%);
+  pointer-events:none;
+}
+.drone-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 14px;border-radius:20px;
+  border:1px solid rgba(79,156,249,0.3);
+  background:rgba(79,156,249,0.08);
+  font-family:'DM Mono',monospace;font-size:11px;
+  color:var(--accent);margin-bottom:24px;
+  animation:fadeDown .6s ease both;
+}
+.hero h1{
+  font-family:'Syne',sans-serif;font-weight:800;
+  font-size:clamp(36px,7vw,80px);line-height:.95;
+  letter-spacing:-2px;margin-bottom:20px;
+  animation:fadeDown .6s .1s ease both;
+}
+.hero h1 span{color:var(--accent)}
+.hero p{
+  font-size:clamp(15px,2vw,18px);color:var(--text2);
+  max-width:560px;line-height:1.6;margin-bottom:36px;
+  animation:fadeDown .6s .2s ease both;
+}
+.hero-cta{
+  display:flex;flex-wrap:wrap;gap:10px;justify-content:center;
+  animation:fadeDown .6s .3s ease both;
+}
+.btn-primary{
+  padding:12px 28px;border-radius:var(--r);
+  background:var(--accent);color:#fff;font-weight:500;font-size:14px;
+  border:none;cursor:pointer;transition:all .2s;
+}
+.btn-primary:hover{background:#3a8be8;transform:translateY(-1px)}
+.btn-ghost{
+  padding:12px 28px;border-radius:var(--r);
+  background:transparent;color:var(--text2);font-size:14px;font-weight:500;
+  border:1px solid var(--border2);cursor:pointer;transition:all .2s;
+}
+.btn-ghost:hover{color:var(--text);border-color:var(--text3)}
+.stats-row{
+  display:flex;flex-wrap:wrap;gap:12px;justify-content:center;
+  margin-top:48px;animation:fadeDown .6s .4s ease both;
+}
+.stat-chip{
+  padding:10px 20px;border-radius:var(--r);
+  background:var(--bg2);border:1px solid var(--border);
+  text-align:center;
+}
+.stat-chip .v{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;color:var(--text)}
+.stat-chip .l{font-size:11px;color:var(--text3);margin-top:1px}
+
+@keyframes fadeDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── MAIN LAYOUT ── */
+.main{max-width:900px;margin:0 auto;padding:0 20px 80px}
+
+/* ── CHAPTER NAV ── */
+.chapter-nav{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:10px;margin-bottom:48px;
+}
+.chap-card{
+  padding:16px;border-radius:var(--r2);
+  background:var(--bg2);border:1px solid var(--border);
+  cursor:pointer;transition:all .2s;position:relative;overflow:hidden;
+}
+.chap-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent 60%,rgba(79,156,249,0.04));
+  opacity:0;transition:opacity .2s;
+}
+.chap-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.chap-card:hover::before{opacity:1}
+.chap-card.done{border-color:rgba(126,232,162,0.3)}
+.chap-num{
+  font-family:'DM Mono',monospace;font-size:11px;
+  color:var(--accent);margin-bottom:6px;
+}
+.chap-card.done .chap-num{color:var(--accent2)}
+.chap-title{font-family:'Syne',sans-serif;font-weight:600;font-size:14px;margin-bottom:4px}
+.chap-sub2{font-size:12px;color:var(--text3);line-height:1.4}
+.chap-done-badge{
+  position:absolute;top:12px;right:12px;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--accent2);display:none;
+  align-items:center;justify-content:center;
+  font-size:9px;color:#0d0f14;font-weight:700;
+}
+.chap-card.done .chap-done-badge{display:flex}
+
+/* ── SECTION TITLES ── */
+.section-block{margin-bottom:40px}
+.section-tag{
+  font-family:'DM Mono',monospace;font-size:11px;
+  color:var(--accent);letter-spacing:.08em;text-transform:uppercase;
+  margin-bottom:8px;
+}
+.section-title2{
+  font-family:'Syne',sans-serif;font-weight:700;
+  font-size:clamp(22px,4vw,32px);line-height:1.1;
+  letter-spacing:-1px;margin-bottom:6px;
+}
+.section-desc{font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:24px}
+
+/* ── CARDS & GRIDS ── */
+.card2{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:20px 22px;margin-bottom:12px;
+}
+.card2-head{
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+  user-select:none;
+}
+.card2-icon{
+  width:32px;height:32px;border-radius:8px;
+  background:rgba(79,156,249,0.1);border:1px solid rgba(79,156,249,0.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+}
+.card2-title{font-weight:500;font-size:14px;flex:1}
+.card2-chevron{
+  font-size:12px;color:var(--text3);
+  transition:transform .25s;
+}
+.card2.open .card2-chevron{transform:rotate(180deg)}
+.card2-body{
+  display:none;margin-top:16px;padding-top:16px;
+  border-top:1px solid var(--border);
+  font-size:13px;color:var(--text2);line-height:1.65;
+}
+.card2.open .card2-body{display:block}
+
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+@media(max-width:500px){.grid3,.grid4{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
+
+.metric{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px;text-align:center;
+}
+.metric .v{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;color:var(--text)}
+.metric .l{font-size:11px;color:var(--text3);margin-top:3px;line-height:1.3}
+
+.table-wrap{overflow-x:auto;margin:12px 0}
+table.t{width:100%;border-collapse:collapse;font-size:13px;min-width:360px}
+table.t th{
+  text-align:left;padding:8px 10px;
+  color:var(--text3);font-weight:500;font-size:11px;font-family:'DM Mono',monospace;
+  text-transform:uppercase;letter-spacing:.06em;
+  border-bottom:1px solid var(--border);
+}
+table.t td{
+  padding:9px 10px;color:var(--text2);
+  border-bottom:1px solid var(--border);vertical-align:top;
+}
+table.t tr:last-child td{border-bottom:none}
+table.t td:first-child{color:var(--text);font-weight:500}
+
+.info-box{
+  background:rgba(79,156,249,0.06);border:1px solid rgba(79,156,249,0.18);
+  border-radius:var(--r);padding:12px 16px;
+  font-size:13px;color:#7eb8f9;line-height:1.55;margin:10px 0;
+}
+.warn-box{
+  background:rgba(249,200,79,0.06);border:1px solid rgba(249,200,79,0.2);
+  border-radius:var(--r);padding:12px 16px;
+  font-size:13px;color:#f9c84f;line-height:1.55;margin:10px 0;
+}
+.ok-box{
+  background:rgba(126,232,162,0.06);border:1px solid rgba(126,232,162,0.2);
+  border-radius:var(--r);padding:12px 16px;
+  font-size:13px;color:#7ee8a2;line-height:1.55;margin:10px 0;
+}
+
+/* ── CHECKLIST ── */
+.checklist{display:flex;flex-direction:column;gap:8px;margin:10px 0}
+.ci{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 12px;border-radius:var(--r);
+  background:var(--bg3);border:1px solid var(--border);
+  font-size:13px;color:var(--text2);cursor:pointer;
+  transition:all .2s;
+}
+.ci:hover{border-color:var(--border2)}
+.ci.checked{background:rgba(126,232,162,0.04);border-color:rgba(126,232,162,0.2);color:var(--text)}
+.cb{
+  width:18px;height:18px;border-radius:5px;
+  border:1.5px solid var(--text3);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;transition:all .2s;margin-top:0px;
+}
+.ci.checked .cb{background:var(--accent2);border-color:var(--accent2);color:#0d0f14}
+
+/* ── STEP FLOW ── */
+.step-flow{display:flex;flex-direction:column;gap:0;margin:12px 0}
+.sf{display:flex;gap:14px;position:relative}
+.sf::before{
+  content:'';position:absolute;left:15px;top:34px;
+  bottom:-4px;width:1px;
+  background:linear-gradient(var(--border2),transparent);
+}
+.sf:last-child::before{display:none}
+.sf-dot{
+  width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  background:rgba(79,156,249,0.12);border:1px solid rgba(79,156,249,0.25);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);
+}
+.sf-body{padding-bottom:20px;flex:1}
+.sf-title{font-weight:500;font-size:14px;margin-bottom:4px}
+.sf p{font-size:13px;color:var(--text2);line-height:1.6}
+
+/* ── BADGES ── */
+.badge{
+  display:inline-flex;align-items:center;
+  padding:3px 9px;border-radius:12px;
+  font-family:'DM Mono',monospace;font-size:11px;font-weight:500;
+}
+.b-blue{background:rgba(79,156,249,0.12);color:#7eb8f9;border:1px solid rgba(79,156,249,0.2)}
+.b-green{background:rgba(126,232,162,0.1);color:#7ee8a2;border:1px solid rgba(126,232,162,0.2)}
+.b-warn{background:rgba(249,200,79,0.1);color:#f9c84f;border:1px solid rgba(249,200,79,0.2)}
+.b-red{background:rgba(249,96,96,0.1);color:#f96060;border:1px solid rgba(249,96,96,0.2)}
+
+/* ── GCP VISUAL ── */
+.gcp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:12px 0}
+.gcp-item{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r2);padding:16px;text-align:center;
+}
+.gcp-svg{display:flex;justify-content:center;margin-bottom:10px}
+.gcp-name{font-weight:500;font-size:13px;margin-bottom:4px}
+.gcp-desc{font-size:12px;color:var(--text3);line-height:1.4}
+
+/* ── CALC ── */
+.calc-block{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:22px;margin:12px 0;
+}
+.sl-row{display:flex;align-items:center;gap:12px;margin:8px 0}
+.sl-row label{font-size:12px;color:var(--text2);min-width:120px;flex-shrink:0}
+.sl-row input[type=range]{
+  flex:1;height:4px;border-radius:2px;
+  -webkit-appearance:none;appearance:none;
+  background:var(--bg3);outline:none;cursor:pointer;
+  border:1px solid var(--border2);
+}
+.sl-row input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;
+  border-radius:50%;background:var(--accent);cursor:pointer;
+}
+.sl-row output{
+  font-family:'DM Mono',monospace;font-size:12px;
+  color:var(--accent);min-width:60px;text-align:right;
+}
+.calc-result{
+  margin-top:14px;padding:14px;
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;
+}
+.cr-item .crv{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:var(--text)}
+.cr-item .crl{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* ── PHONE MOCKUP ── */
+.phone-wrap{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r2);overflow:hidden;margin:12px 0;
+}
+.phone-header{
+  background:var(--bg2);padding:10px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+}
+.phone-header .app-name{font-family:'DM Mono',monospace;font-size:11px;color:var(--text2)}
+.phone-header .status{font-size:11px;color:var(--accent2)}
+.phone-body{padding:0}
+.phone-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 14px;border-bottom:1px solid var(--border);
+  font-size:13px;
+}
+.phone-row:last-child{border-bottom:none}
+.phone-row .k{color:var(--text2)}
+.phone-row .v{font-weight:500;color:var(--accent);font-family:'DM Mono',monospace;font-size:12px}
+.map-sim{
+  height:160px;background:#141824;
+  position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+.map-sim svg{opacity:.8}
+
+/* ── CAMERA SETTINGS ── */
+.cam-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:10px;margin:12px 0;
+}
+.cam-setting{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px;
+  transition:all .2s;cursor:default;
+}
+.cam-setting:hover{border-color:var(--border2)}
+.cam-param{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase}
+.cam-val{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;color:var(--text);margin-bottom:4px}
+.cam-why{font-size:11px;color:var(--text3);line-height:1.4}
+.cam-val.highlight{color:var(--accent)}
+
+/* ── NAV BTNS ── */
+.nav-btns{
+  display:flex;gap:10px;margin-top:32px;
+  padding-top:24px;border-top:1px solid var(--border);
+}
+.nav-btns button{
+  flex:1;padding:12px;border-radius:var(--r);font-size:13px;font-weight:500;
+  cursor:pointer;transition:all .2s;border:1px solid var(--border2);
+  background:transparent;color:var(--text2);
+}
+.nav-btns button:hover{color:var(--text);border-color:var(--text3)}
+.nav-btns button.nxt{
+  background:var(--accent);border-color:var(--accent);color:#fff;
+}
+.nav-btns button.nxt:hover{background:#3a8be8}
+
+/* ── CHAPTERS ── */
+.chapter{display:none;animation:fadeIn .3s ease}
+.chapter.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+#home-view{animation:fadeIn .4s ease}
+.chap-hero{
+  display:flex;align-items:center;gap:14px;
+  padding:20px 0 24px;margin-bottom:28px;
+  border-bottom:1px solid var(--border);
+}
+.chap-n{
+  width:44px;height:44px;border-radius:12px;flex-shrink:0;
+  background:rgba(79,156,249,0.1);border:1px solid rgba(79,156,249,0.2);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DM Mono',monospace;font-size:16px;color:var(--accent);
+}
+.chap-h-title{font-family:'Syne',sans-serif;font-weight:700;font-size:22px;letter-spacing:-.5px}
+.chap-h-sub{font-size:13px;color:var(--text3);margin-top:3px}
+.back-link{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);
+  cursor:pointer;margin-bottom:20px;transition:color .2s;text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.back-link:hover{color:var(--accent)}
+
+/* ── FOOTER ── */
+footer{
+  text-align:center;padding:32px 20px;
+  border-top:1px solid var(--border);
+  font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);
+}
+footer span{color:var(--accent)}
+
+/* ── MOBILE ── */
+@media(max-width:640px){
+  .topbar{padding:0 14px}
+  .nav-pills{max-width:calc(100vw - 120px)}
+  .hero h1{letter-spacing:-1px}
+  .stats-row{gap:8px}
+  .stat-chip .v{font-size:16px}
+  .main{padding:0 14px 60px}
+  .chapter-nav{grid-template-columns:1fr 1fr}
+  .gcp-grid{grid-template-columns:1fr 1fr}
+  .cam-grid{grid-template-columns:repeat(2,1fr)}
+  .sl-row label{min-width:90px;font-size:11px}
+  .chap-h-title{font-size:18px}
+}
+
+/* ── SCROLL REVEAL ── */
+.reveal{opacity:0;transform:translateY(16px);transition:all .45s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<nav class="topbar">
+  <div class="logo"><div class="logo-dot"></div>Air 3S · Photogrammétrie</div>
+  <div class="nav-pills" id="nav-pills">
+    <div class="pill active" onclick="showHome()">Accueil</div>
+    <div class="pill" onclick="go(1)">01 · Réglementation</div>
+    <div class="pill" onclick="go(2)">02 · Matériel</div>
+    <div class="pill" onclick="go(3)">03 · GCPs</div>
+    <div class="pill" onclick="go(4)">04 · Planification</div>
+    <div class="pill" onclick="go(5)">05 · Programmer</div>
+    <div class="pill" onclick="go(6)">06 · Caméra</div>
+    <div class="pill" onclick="go(7)">07 · Terrain</div>
+    <div class="pill" onclick="go(8)">08 · Vol & après</div>
+  </div>
+</nav>
+<div class="progress-bar" id="progress-bar" style="width:0%"></div>
+
+<!-- HERO -->
+<div id="home-view">
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="drone-badge">DJI Air 3S · Capteur 1" · 50 MP</div>
+  <h1>Photogrammétrie<br><span>de A à Z</span></h1>
+  <p>Le mode d'emploi complet pour cartographier un terrain, créer un modèle 3D et produire une orthophoto précise — sans expérience préalable.</p>
+  <div class="hero-cta">
+    <button class="btn-primary" onclick="go(1)">Commencer le guide →</button>
+    <button class="btn-ghost" onclick="document.getElementById('chapters-section').scrollIntoView({behavior:'smooth'})">Voir les chapitres</button>
+  </div>
+  <div class="stats-row">
+    <div class="stat-chip"><div class="v">8</div><div class="l">chapitres</div></div>
+    <div class="stat-chip"><div class="v">~2 cm</div><div class="l">précision avec GCPs</div></div>
+    <div class="stat-chip"><div class="v">120 m</div><div class="l">altitude max légale</div></div>
+    <div class="stat-chip"><div class="v">45 min</div><div class="l">autonomie batterie</div></div>
+  </div>
+</section>
+
+<!-- CHAPTER CARDS -->
+<div class="main" id="chapters-section">
+  <div class="section-block reveal">
+    <div class="section-tag">Programme</div>
+    <div class="section-title2">Les 8 étapes</div>
+    <div class="section-desc">Suivez l'ordre la première fois. Chaque chapitre prépare le suivant.</div>
+    <div class="chapter-nav">
+      <div class="chap-card" id="cc-1" onclick="go(1)"><div class="chap-done-badge">✓</div><div class="chap-num">01</div><div class="chap-title">Réglementation</div><div class="chap-sub2">AlphaTango, DGAC, zones de vol</div></div>
+      <div class="chap-card" id="cc-2" onclick="go(2)"><div class="chap-done-badge">✓</div><div class="chap-num">02</div><div class="chap-title">Matériel</div><div class="chap-sub2">Batteries, carte SD, apps à installer</div></div>
+      <div class="chap-card" id="cc-3" onclick="go(3)"><div class="chap-done-badge">✓</div><div class="chap-num">03</div><div class="chap-title">Les GCPs</div><div class="chap-sub2">Ce que c'est, comment les faire</div></div>
+      <div class="chap-card" id="cc-4" onclick="go(4)"><div class="chap-done-badge">✓</div><div class="chap-num">04</div><div class="chap-title">Planification</div><div class="chap-sub2">Altitude, recouvrement, calculs</div></div>
+      <div class="chap-card" id="cc-5" onclick="go(5)"><div class="chap-done-badge">✓</div><div class="chap-num">05</div><div class="chap-title">Programmer le vol</div><div class="chap-sub2">Pas à pas dans DJI Fly</div></div>
+      <div class="chap-card" id="cc-6" onclick="go(6)"><div class="chap-done-badge">✓</div><div class="chap-num">06</div><div class="chap-title">Réglages caméra</div><div class="chap-sub2">ISO, vitesse, balance des blancs</div></div>
+      <div class="chap-card" id="cc-7" onclick="go(7)"><div class="chap-done-badge">✓</div><div class="chap-num">07</div><div class="chap-title">Sur le terrain</div><div class="chap-sub2">Checklist décollage complète</div></div>
+      <div class="chap-card" id="cc-8" onclick="go(8)"><div class="chap-done-badge">✓</div><div class="chap-num">08</div><div class="chap-title">Vol & après</div><div class="chap-sub2">Mission, batteries, traitement</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════ CHAPITRES ════════════════════════════════ -->
+<div class="main">
+
+<!-- ── CHAPITRE 1 ── -->
+<div class="chapter" id="chap-1">
+  <div class="back-link" onclick="showHome()">← Accueil</div>
+  <div class="chap-hero"><div class="chap-n">01</div><div><div class="chap-h-title">La réglementation française</div><div class="chap-h-sub">Obligatoire avant de sortir le drone</div></div></div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Votre drone</div>
+    <div class="section-title2">Catégorie C1</div>
+    <p class="section-desc">Le DJI Air 3S pèse 723 g → classe UE C1 → Catégorie OPEN A1/A3. Altitude max : 120 m. Vol en vue directe (VLOS) obligatoire.</p>
+    <div class="grid4">
+      <div class="metric"><div class="v">C1</div><div class="l">Classe UE</div></div>
+      <div class="metric"><div class="v">OPEN</div><div class="l">Catégorie de vol</div></div>
+      <div class="metric"><div class="v">120 m</div><div class="l">Altitude max légale</div></div>
+      <div class="metric"><div class="v">VLOS</div><div class="l">Vue directe requise</div></div>
+    </div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Inscription obligatoire</div>
+    <div class="section-title2">AlphaTango — 4 étapes</div>
+    <div class="step-flow">
+      <div class="sf"><div class="sf-dot">1</div><div class="sf-body"><div class="sf-title">Créer un compte sur alphatango.aviation-civile.fr</div><p>Gratuit, 10 min. Il vous faut une adresse email et vos coordonnées personnelles.</p></div></div>
+      <div class="sf"><div class="sf-dot">2</div><div class="sf-body"><div class="sf-title">Déclarer votre drone</div><p>Modèle "DJI Air 3S", numéro de série (inscrit sous l'appareil). Vous recevez un numéro d'exploitant au format FRxxxxxxxxx.</p></div></div>
+      <div class="sf"><div class="sf-dot">3</div><div class="sf-body"><div class="sf-title">Coller l'étiquette sur le drone</div><p>Imprimez votre numéro d'exploitant et collez-le de façon lisible et permanente sur l'appareil. Obligatoire à chaque vol.</p></div></div>
+      <div class="sf"><div class="sf-dot">4</div><div class="sf-body"><div class="sf-title">Passer le test théorique en ligne</div><p>Toujours sur AlphaTango → quiz OPEN gratuit, 40 questions, tentatives illimitées. Indispensable pour voler légalement.</p></div></div>
+    </div>
+    <div class="ok-box">Une fois ces 4 étapes complètes, vous êtes légalement autorisé à voler en catégorie OPEN en France.</div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Avant chaque vol</div>
+    <div class="section-title2">Vérifier la zone</div>
+    <p class="section-desc">Consultez systématiquement les cartes officielles avant chaque mission.</p>
+    <div class="table-wrap"><table class="t"><thead><tr><th>Outil</th><th>Usage</th></tr></thead><tbody>
+      <tr><td>Géoportail Drone</td><td>geoportail.fr/drone — carte officielle interactive des zones interdites et réglementées</td></tr>
+      <tr><td>DJI Fly (intégré)</td><td>Carte avec alertes automatiques : zones rouges (interdit), jaunes (attention), vertes (OK)</td></tr>
+      <tr><td>SIA / AIP</td><td>sia.aviation-civile.fr → consulter les NOTAM du jour (restrictions temporaires)</td></tr>
+    </tbody></table></div>
+    <div class="warn-box">Zone rouge dans DJI Fly = vol interdit sans autorisation SPECIFIC (procédure longue). Zone jaune = voler avec précaution et vérifier les conditions exactes.</div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Assurance</div>
+    <div class="section-title2">RC drone obligatoire</div>
+    <p class="section-desc">Une assurance Responsabilité Civile spécifique drone est obligatoire depuis 2015. Vérifiez d'abord votre assurance habitation (certaines l'incluent). Sinon : AXA, Allianz, AssurDrone → 30–80 €/an pour un usage loisir.</p>
+  </div>
+
+  <div class="nav-btns"><button onclick="showHome()">Accueil</button><button class="nxt" onclick="go(2)">Matériel →</button></div>
+</div>
+
+<!-- ── CHAPITRE 2 ── -->
+<div class="chapter" id="chap-2">
+  <div class="back-link" onclick="showHome()">← Accueil</div>
+  <div class="chap-hero"><div class="chap-n">02</div><div><div class="chap-h-title">Préparer son matériel</div><div class="chap-h-sub">Tout vérifier avant de partir sur le terrain</div></div></div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Équipement</div>
+    <div class="section-title2">Ce qu'il vous faut</div>
+    <div class="table-wrap"><table class="t"><thead><tr><th>Élément</th><th>Spécification</th><th>Remarque</th></tr></thead><tbody>
+      <tr><td>DJI Air 3S</td><td>Firmware à jour</td><td>Cache gimbal retiré, hélices inspectées</td></tr>
+      <tr><td>Batteries</td><td>Minimum 2 × 100 %</td><td>≈ 15–20 ha par batterie à 80 m</td></tr>
+      <tr><td>Télécommande</td><td>RC2 ou RC-N3 + smartphone</td><td>Chargée, app DJI Fly à jour</td></tr>
+      <tr><td>Carte microSD</td><td>64 Go min · classe V30 ou U3</td><td>Formatée dans le drone (pas sur PC)</td></tr>
+      <tr><td>Chargeur voiture</td><td>Compatible DJI</td><td>Utile pour recharger entre les vols</td></tr>
+    </tbody></table></div>
+    <div class="warn-box">Une carte SD lente = perte de photos ou déclencheur ralenti. Marques fiables : SanDisk Extreme Pro, Lexar 1066x, Kingston Canvas React Plus.</div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Inspection</div>
+    <div class="section-title2">Vérifier les hélices</div>
+    <p class="section-desc">Avant chaque vol, inspectez visuellement les 4 hélices :</p>
+    <div class="checklist">
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Pas de fissure, même fine, sur les pales</span></div>
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Pas de jeu excessif dans l'axe de fixation (serrer si nécessaire)</span></div>
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Aucune trace de choc ou déformation visible</span></div>
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Hélices bien fixées : tourner dans le sens de blocage jusqu'au clic</span></div>
+    </div>
+    <div class="warn-box">Une hélice fissurée peut casser en plein vol et provoquer un crash. Ne jamais voler avec une hélice endommagée, même légèrement.</div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Configuration</div>
+    <div class="section-title2">Formater la carte SD dans le drone</div>
+    <div class="step-flow">
+      <div class="sf"><div class="sf-dot">1</div><div class="sf-body"><p>Dans DJI Fly → icône "..." en haut à droite → Paramètres caméra</p></div></div>
+      <div class="sf"><div class="sf-dot">2</div><div class="sf-body"><p>Faire défiler jusqu'à "Carte SD" → toucher "Formater la carte SD"</p></div></div>
+      <div class="sf"><div class="sf-dot">3</div><div class="sf-body"><p>Confirmer → attendre ~30 secondes. Ne jamais formater sur PC (erreurs de compatibilité).</p></div></div>
+    </div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Application</div>
+    <div class="section-title2">Quelle app choisir ?</div>
+    <div class="table-wrap"><table class="t"><thead><tr><th>Application</th><th>Niveau</th><th>Points forts</th></tr></thead><tbody>
+      <tr><td>DJI Fly <span class="badge b-green">Recommandé débutant</span></td><td>Débutant</td><td>Gratuite, native, Waypoints intégrés, simple</td></tr>
+      <tr><td>Pix4Dcapture</td><td>Semi-pro</td><td>Double grille, gestion GCPs, très précis</td></tr>
+      <tr><td>DroneDeploy</td><td>Semi-pro</td><td>Interface simple, traitement cloud intégré</td></tr>
+    </tbody></table></div>
+    <div class="info-box">Ce guide se base sur DJI Fly pour la programmation du vol (chapitre 5). Mettez toujours l'application à jour avant une mission.</div>
+  </div>
+
+  <div class="nav-btns"><button onclick="go(1)">← Réglementation</button><button class="nxt" onclick="go(3)">Les GCPs →</button></div>
+</div>
+
+<!-- ── CHAPITRE 3 ── -->
+<div class="chapter" id="chap-3">
+  <div class="back-link" onclick="showHome()">← Accueil</div>
+  <div class="chap-hero"><div class="chap-n">03</div><div><div class="chap-h-title">Les GCPs — tout comprendre</div><div class="chap-h-sub">Ground Control Points : à quoi ça ressemble, comment les faire</div></div></div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Définition</div>
+    <div class="section-title2">C'est quoi un GCP ?</div>
+    <p class="section-desc">Un GCP (Ground Control Point) est une cible physique posée sur le terrain avant le vol, dont on mesure précisément les coordonnées GPS. Le logiciel de traitement identifie ces cibles sur les photos et les utilise pour "ancrer" le modèle 3D dans les vraies coordonnées géographiques.</p>
+    <div class="grid2">
+      <div class="metric"><div class="v">1–3 m</div><div class="l">Précision sans GCPs (GPS seul du drone)</div></div>
+      <div class="metric"><div class="v">2–5 cm</div><div class="l">Précision avec GCPs + relevé RTK</div></div>
+    </div>
+    <div class="info-box">Pour une simple orthophoto ou cartographie générale, les GCPs ne sont pas obligatoires. Ils deviennent nécessaires pour la topographie, le BTP, les calculs de volume ou le cadastre.</div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Modèles</div>
+    <div class="section-title2">À quoi ressemble un GCP ?</div>
+    <div class="gcp-grid">
+      <div class="gcp-item">
+        <div class="gcp-svg">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <rect width="80" height="80" fill="#1a1e28" rx="4"/>
+            <rect x="0" y="0" width="80" height="80" fill="#1a1e28"/>
+            <rect x="32" y="0" width="16" height="80" fill="#e8eaf0"/>
+            <rect x="0" y="32" width="80" height="16" fill="#e8eaf0"/>
+            <circle cx="40" cy="40" r="5" fill="#1a1e28"/>
+          </svg>
+        </div>
+        <div class="gcp-name">Croix bicolore</div>
+        <div class="gcp-desc">Le plus utilisé. Centre au croisement exact des deux bandes.</div>
+      </div>
+      <div class="gcp-item">
+        <div class="gcp-svg">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <rect width="80" height="80" fill="#e8eaf0" rx="4"/>
+            <rect x="0" y="0" width="40" height="40" fill="#1a1e28"/>
+            <rect x="40" y="40" width="40" height="40" fill="#1a1e28"/>
+            <rect width="80" height="80" fill="none" stroke="#888" stroke-width="0.5" rx="4"/>
+          </svg>
+        </div>
+        <div class="gcp-name">Damier</div>
+        <div class="gcp-desc">Très reconnaissable. Centre au coin des 4 carrés.</div>
+      </div>
+      <div class="gcp-item">
+        <div class="gcp-svg">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <rect width="80" height="80" fill="#1a1e28" rx="4"/>
+            <circle cx="40" cy="40" r="30" fill="none" stroke="#e8eaf0" stroke-width="3"/>
+            <circle cx="40" cy="40" r="20" fill="#e8eaf0"/>
+            <circle cx="40" cy="40" r="8" fill="#1a1e28"/>
+          </svg>
+        </div>
+        <div class="gcp-name">Cible concentrique</div>
+        <div class="gcp-desc">Très lisible. Centre du cercle intérieur = point de référence.</div>
+      </div>
+      <div class="gcp-item">
+        <div class="gcp-svg">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <rect width="80" height="80" fill="#13161e" rx="4" stroke="#2a2e3a" stroke-width="1"/>
+            <text x="40" y="30" text-anchor="middle" font-size="10" fill="#8a8fa8" font-family="monospace">Taille réelle</text>
+            <text x="40" y="50" text-anchor="middle" font-size="18" fill="#e8eaf0" font-weight="bold">50×50</text>
+            <text x="40" y="65" text-anchor="middle" font-size="11" fill="#555b72" font-family="monospace">cm minimum</text>
+          </svg>
+        </div>
+        <div class="gcp-name">Dimensions</div>
+        <div class="gcp-desc">Pour être visible à 80–100 m. Plus grand = mieux repéré.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Fabrication</div>
+    <div class="section-title2">Comment les fabriquer</div>
+    <div class="table-wrap"><table class="t"><thead><tr><th>Option</th><th>Matériau</th><th>Coût</th><th>Durabilité</th></tr></thead><tbody>
+      <tr><td>Bâche plastique peinte</td><td>PVC + peinture noir/blanc</td><td>5–15 €</td><td>Réutilisable, résistant</td></tr>
+      <tr><td>Impression A4 plastifiée</td><td>Papier + plastifieuse</td><td>&lt; 2 €</td><td>Usage unique ou quelques fois</td></tr>
+      <tr><td>Dalle peinte</td><td>Dalle béton / pavé existant</td><td>0 €</td><td>Permanent sur site fixe</td></tr>
+      <tr><td>Cible professionnelle</td><td>Aluminium pliant</td><td>20–40 €</td><td>Longue durée, pliable</td></tr>
+    </tbody></table></div>
+    <div class="info-box">Le contraste est primordial : blanc sur fond sombre ou noir sur fond clair. Évitez les surfaces brillantes qui réfléchissent la lumière et saturent le capteur.</div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Placement</div>
+    <div class="section-title2">Où et comment les poser</div>
+    <div class="step-flow">
+      <div class="sf"><div class="sf-dot">✓</div><div class="sf-body"><div class="sf-title">Minimum 5 GCPs par zone</div><p>1 à chaque coin + 1 au centre. Pour les zones allongées, ajoutez des points sur les bords longs.</p></div></div>
+      <div class="sf"><div class="sf-dot">✓</div><div class="sf-body"><div class="sf-title">1 GCP tous les 5–8 hectares pour les grandes surfaces</div><p>Plus la zone est grande, plus il faut de points d'ancrage répartis.</p></div></div>
+      <div class="sf"><div class="sf-dot">✓</div><div class="sf-body"><div class="sf-title">Poser à plat sur le sol, sans ombre dessus</div><p>Pas d'herbe haute, pas de végétation masquant les bords. La cible doit être entièrement visible depuis les airs.</p></div></div>
+      <div class="sf"><div class="sf-dot">✓</div><div class="sf-body"><div class="sf-title">5 % à l'intérieur des bords de zone</div><p>Un GCP trop en bordure peut n'apparaître que sur quelques photos et être inutilisable.</p></div></div>
+      <div class="sf"><div class="sf-dot">✗</div><div class="sf-body"><div class="sf-title">Ne jamais regrouper les GCPs</div><p>5 cibles côte à côte = inutile. Elles doivent être dispersées sur toute la surface pour ancrer le modèle partout.</p></div></div>
+    </div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Mesure</div>
+    <div class="section-title2">Relever les coordonnées</div>
+    <div class="table-wrap"><table class="t"><thead><tr><th>Méthode</th><th>Précision</th><th>Usage</th></tr></thead><tbody>
+      <tr><td>GPS RTK (Emlid Reach RS2, Leica…)</td><td>1–3 cm</td><td>Topographie, BTP, cadastre</td></tr>
+      <tr><td>GPS smartphone</td><td>3–10 m</td><td>Orthophoto générale sans exigence métrique</td></tr>
+    </tbody></table></div>
+    <p style="font-size:13px;color:var(--text2);margin-top:10px">Notez pour chaque GCP : un identifiant (GCP_01…), la latitude, la longitude, et l'altitude NGF en mètres. Vous saisirez ces valeurs dans le logiciel de traitement après le vol.</p>
+  </div>
+
+  <div class="nav-btns"><button onclick="go(2)">← Matériel</button><button class="nxt" onclick="go(4)">Planification →</button></div>
+</div>
+
+<!-- ── CHAPITRE 4 ── -->
+<div class="chapter" id="chap-4">
+  <div class="back-link" onclick="showHome()">← Accueil</div>
+  <div class="chap-hero"><div class="chap-n">04</div><div><div class="chap-h-title">Planifier la mission</div><div class="chap-h-sub">Altitude, recouvrement, calculateur interactif</div></div></div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Principe</div>
+    <div class="section-title2">La grille de vol "serpentin"</div>
+    <p class="section-desc">Le drone suit une grille automatique : il avance en ligne droite, prend des photos à intervalles réguliers, revient en sens inverse une ligne plus loin, et recommence. On appelle ça un plan de vol en serpentin (lawn mower pattern).</p>
+    <div class="card2">
+      <div style="text-align:center;padding:16px 0">
+        <svg width="100%" viewBox="0 0 320 200" style="max-width:320px">
+          <rect x="20" y="10" width="280" height="180" fill="none" stroke="rgba(79,156,249,0.2)" stroke-width="1.5" stroke-dasharray="5 4" rx="6"/>
+          <text x="160" y="6" text-anchor="middle" font-size="9" fill="#555b72" font-family="monospace">Zone à cartographier</text>
+          <line x1="55" y1="35" x2="275" y2="35" stroke="#4f9cf9" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="275" y1="35" x2="275" y2="70" stroke="#555b72" stroke-width="1" stroke-dasharray="4 3"/>
+          <line x1="275" y1="70" x2="55" y2="70" stroke="#4f9cf9" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="55" y1="70" x2="55" y2="105" stroke="#555b72" stroke-width="1" stroke-dasharray="4 3"/>
+          <line x1="55" y1="105" x2="275" y2="105" stroke="#4f9cf9" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="275" y1="105" x2="275" y2="140" stroke="#555b72" stroke-width="1" stroke-dasharray="4 3"/>
+          <line x1="275" y1="140" x2="55" y2="140" stroke="#4f9cf9" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="55" y1="140" x2="55" y2="175" stroke="#555b72" stroke-width="1" stroke-dasharray="4 3"/>
+          <line x1="55" y1="175" x2="275" y2="175" stroke="#4f9cf9" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="55" cy="35" r="5" fill="#4f9cf9"/>
+          <text x="38" y="32" font-size="9" fill="#4f9cf9" font-family="monospace">Départ</text>
+          <polygon points="272,31 280,35 272,39" fill="#4f9cf9"/>
+          <text x="145" y="55" text-anchor="middle" font-size="9" fill="#555b72">← espace entre lignes →</text>
+          <text x="300" y="105" text-anchor="start" font-size="9" fill="#555b72" transform="rotate(-90 300 105)" dy="0">virages</text>
+          <circle cx="130" cy="35" r="2" fill="#7ee8a2"/>
+          <circle cx="175" cy="35" r="2" fill="#7ee8a2"/>
+          <circle cx="220" cy="35" r="2" fill="#7ee8a2"/>
+          <circle cx="85" cy="70" r="2" fill="#7ee8a2"/>
+          <circle cx="130" cy="70" r="2" fill="#7ee8a2"/>
+          <circle cx="175" cy="70" r="2" fill="#7ee8a2"/>
+          <circle cx="220" cy="70" r="2" fill="#7ee8a2"/>
+          <text x="120" y="196" text-anchor="middle" font-size="8" fill="#4f9cf9" font-family="monospace">= déclenchement photo</text>
+          <circle cx="108" cy="192" r="3" fill="#7ee8a2"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Paramètres clés</div>
+    <div class="section-title2">Altitude et GSD</div>
+    <p class="section-desc">Le GSD (Ground Sampling Distance) = taille d'un pixel au sol. Air 3S : capteur 1 pouce, focale 24 mm.</p>
+    <div class="grid4">
+      <div class="metric"><div class="v">~0,9 cm</div><div class="l">GSD à 40 m</div></div>
+      <div class="metric"><div class="v">~1,7 cm</div><div class="l">GSD à 80 m</div></div>
+      <div class="metric"><div class="v">~2,5 cm</div><div class="l">GSD à 120 m</div></div>
+      <div class="metric"><div class="v">120 m</div><div class="l">Limite légale</div></div>
+    </div>
+    <div class="warn-box">120 m AGL maximum en catégorie OPEN en France. En zone CTR (aéroport proche), la limite peut descendre à 50 m sans accord préalable.</div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Calculateur interactif</div>
+    <div class="section-title2">Estimez votre mission</div>
+    <div class="calc-block">
+      <div class="sl-row"><label>Altitude de vol</label><input type="range" min="40" max="120" value="80" step="10" id="sl-alt" oninput="calc()"><output id="o-alt">80 m</output></div>
+      <div class="sl-row"><label>Surface à couvrir</label><input type="range" min="1" max="60" value="10" step="1" id="sl-surf" oninput="calc()"><output id="o-surf">10 ha</output></div>
+      <div class="sl-row"><label>Recouvrement frontal</label><input type="range" min="70" max="90" value="80" step="5" id="sl-front" oninput="calc()"><output id="o-front">80 %</output></div>
+      <div class="sl-row"><label>Recouvrement latéral</label><input type="range" min="60" max="80" value="70" step="5" id="sl-lat" oninput="calc()"><output id="o-lat">70 %</output></div>
+      <div class="calc-result" id="calc-res">
+        <div class="cr-item"><div class="crv" id="cr-gsd">—</div><div class="crl">GSD (cm/px)</div></div>
+        <div class="cr-item"><div class="crv" id="cr-photos">—</div><div class="crl">Photos estimées</div></div>
+        <div class="cr-item"><div class="crv" id="cr-dur">—</div><div class="crl">Durée (min)</div></div>
+        <div class="cr-item"><div class="crv" id="cr-bat">—</div><div class="crl">Batteries</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Recommandations</div>
+    <div class="section-title2">Valeurs par usage</div>
+    <div class="table-wrap"><table class="t"><thead><tr><th>Usage</th><th>Altitude</th><th>Frontal</th><th>Latéral</th></tr></thead><tbody>
+      <tr><td>Orthophoto générale</td><td>80 m</td><td>75 %</td><td>65 %</td></tr>
+      <tr><td>Modèle 3D terrain plat</td><td>80 m</td><td>85 %</td><td>75 %</td></tr>
+      <tr><td>Modèle 3D bâtiments</td><td>60 m</td><td>85 %</td><td>80 %</td></tr>
+      <tr><td>Topographie précise + GCPs</td><td>80–100 m</td><td>85 %</td><td>75 %</td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="nav-btns"><button onclick="go(3)">← GCPs</button><button class="nxt" onclick="go(5)">Programmer le vol →</button></div>
+</div>
+
+<!-- ── CHAPITRE 5 ── -->
+<div class="chapter" id="chap-5">
+  <div class="back-link" onclick="showHome()">← Accueil</div>
+  <div class="chap-hero"><div class="chap-n">05</div><div><div class="chap-h-title">Programmer le vol dans DJI Fly</div><div class="chap-h-sub">Pas à pas, écran par écran</div></div></div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Démarrage</div>
+    <div class="section-title2">Connecter et allumer</div>
+    <div class="step-flow">
+      <div class="sf"><div class="sf-dot">1</div><div class="sf-body"><div class="sf-title">Allumer la télécommande</div><p>Appui court puis appui long sur le bouton. Attendre le démarrage complet (bip).</p></div></div>
+      <div class="sf"><div class="sf-dot">2</div><div class="sf-body"><div class="sf-title">Allumer le drone</div><p>Appui court puis appui long sur le bouton de la batterie. Attendre les bips de démarrage et le calage du gimbal (la caméra s'oriente automatiquement).</p></div></div>
+      <div class="sf"><div class="sf-dot">3</div><div class="sf-body"><div class="sf-title">Ouvrir DJI Fly</div><p>RC2 : l'app s'ouvre automatiquement. RC-N3 (téléphone) : branchez le smartphone en USB puis lancez l'app.</p></div></div>
+      <div class="sf"><div class="sf-dot">4</div><div class="sf-body"><div class="sf-title">Attendre le statut "Prêt"</div><p>Attendre le retour vidéo et l'icône GPS verte en haut de l'écran indiquant "Prêt pour le vol".</p></div></div>
+    </div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Navigation dans l'app</div>
+    <div class="section-title2">Accéder aux Waypoints</div>
+    <div class="phone-wrap">
+      <div class="phone-header"><span class="app-name">DJI Fly — Vue caméra</span><span class="status">GPS OK · 14 satellites</span></div>
+      <div class="phone-body">
+        <div style="height:70px;background:#0d0f14;display:flex;align-items:center;justify-content:center;gap:20px;border-bottom:1px solid var(--border)">
+          <div style="opacity:.35;text-align:center;font-size:11px;color:var(--text2)"><div style="width:28px;height:28px;border:1.5px solid var(--border2);border-radius:6px;margin:0 auto 3px"></div>Retour</div>
+          <div style="opacity:.35;text-align:center;font-size:11px;color:var(--text2)"><div style="width:28px;height:28px;border:1.5px solid var(--border2);border-radius:50%;margin:0 auto 3px"></div>Gyroïde</div>
+          <div style="text-align:center;font-size:11px;color:var(--accent);background:rgba(79,156,249,0.1);border:1px solid rgba(79,156,249,0.25);border-radius:8px;padding:6px 14px">Waypoints →</div>
+          <div style="opacity:.35;text-align:center;font-size:11px;color:var(--text2)"><div style="width:28px;height:28px;border:1.5px solid var(--border2);border-radius:50%;margin:0 auto 3px"></div>Orbite</div>
+        </div>
+        <div style="padding:12px 14px;font-size:12px;color:var(--text2);line-height:1.5">
+          Écran principal → icône "mode intelligent" (carré avec flèche) en bas à gauche → sélectionner <strong style="color:var(--text)">Waypoints</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Tracé de zone</div>
+    <div class="section-title2">Dessiner la zone à cartographier</div>
+    <div class="phone-wrap">
+      <div class="phone-header"><span class="app-name">Waypoints — Tracé de zone</span><span class="status">Mode carte satellite</span></div>
+      <div class="map-sim">
+        <svg width="100%" height="160" viewBox="0 0 340 160">
+          <rect width="340" height="160" fill="#141824"/>
+          <line x1="0" y1="40" x2="340" y2="40" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <line x1="0" y1="80" x2="340" y2="80" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <line x1="0" y1="120" x2="340" y2="120" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <line x1="85" y1="0" x2="85" y2="160" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <line x1="170" y1="0" x2="170" y2="160" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <line x1="255" y1="0" x2="255" y2="160" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <rect x="50" y="25" width="220" height="110" fill="rgba(79,156,249,0.06)" stroke="rgba(79,156,249,0.4)" stroke-width="1.5" stroke-dasharray="6 4" rx="3"/>
+          <line x1="80" y1="45" x2="240" y2="45" stroke="#4f9cf9" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>
+          <line x1="80" y1="65" x2="240" y2="65" stroke="#4f9cf9" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>
+          <line x1="80" y1="85" x2="240" y2="85" stroke="#4f9cf9" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>
+          <line x1="80" y1="105" x2="240" y2="105" stroke="#4f9cf9" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>
+          <circle cx="50" cy="25" r="5" fill="#4f9cf9" stroke="#fff" stroke-width="1.5"/>
+          <circle cx="270" cy="25" r="5" fill="#4f9cf9" stroke="#fff" stroke-width="1.5"/>
+          <circle cx="270" cy="135" r="5" fill="#4f9cf9" stroke="#fff" stroke-width="1.5"/>
+          <circle cx="50" cy="135" r="5" fill="#4f9cf9" stroke="#fff" stroke-width="1.5"/>
+          <circle cx="160" cy="80" r="6" fill="var(--accent2)" opacity="0.9"/>
+          <text x="168" y="76" font-size="9" fill="var(--accent2)" font-family="monospace">Drone</text>
+          <rect x="220" y="140" width="112" height="16" fill="rgba(13,15,20,0.8)" rx="3"/>
+          <text x="276" y="151" text-anchor="middle" font-size="9" fill="#4f9cf9" font-family="monospace">Appuyez pour ajouter un point</text>
+        </svg>
+      </div>
+      <div style="padding:10px 14px;font-size:12px;color:var(--text2);line-height:1.5">
+        Zoomez sur votre terrain avec 2 doigts → appuyez sur les 4 coins de la zone → "Fermer la zone". La grille de vol apparaît automatiquement.
+      </div>
+    </div>
+    <div class="info-box">Tracez un rectangle légèrement plus grand que votre zone réelle (5–10 m de marge de chaque côté) pour éviter les photos coupées en bordure.</div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Paramètres</div>
+    <div class="section-title2">Régler la mission</div>
+    <div class="phone-wrap">
+      <div class="phone-header"><span class="app-name">Waypoints — Paramètres</span><span class="status">Surface : 8,4 ha</span></div>
+      <div class="phone-body">
+        <div class="phone-row"><div class="k">Altitude de vol</div><div class="v">80 m</div></div>
+        <div class="phone-row"><div class="k">Recouvrement frontal</div><div class="v">80 %</div></div>
+        <div class="phone-row"><div class="k">Recouvrement latéral</div><div class="v">70 %</div></div>
+        <div class="phone-row"><div class="k">Vitesse de vol</div><div class="v">10 m/s</div></div>
+        <div class="phone-row"><div class="k">Angle gimbal</div><div class="v">-90° (nadir)</div></div>
+        <div class="phone-row"><div class="k">Mode déclenchement</div><div class="v">Automatique</div></div>
+        <div class="phone-row"><div class="k">Photos estimées</div><div class="v" style="color:var(--text)">248 photos</div></div>
+        <div class="phone-row"><div class="k">Durée estimée</div><div class="v" style="color:var(--text)">12 min 30 s</div></div>
+        <div style="padding:10px 14px;background:rgba(126,232,162,0.06);border-top:1px solid rgba(126,232,162,0.12);font-size:12px;color:var(--accent2)">1 batterie suffisante pour cette mission</div>
+      </div>
+    </div>
+    <div class="warn-box">Ne réglez PAS l'exposition ici. Les réglages de la caméra (ISO, vitesse, balance des blancs) se font séparément dans l'onglet caméra — chapitre suivant.</div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Sauvegarde</div>
+    <div class="section-title2">Enregistrer et lancer</div>
+    <div class="step-flow">
+      <div class="sf"><div class="sf-dot">1</div><div class="sf-body"><div class="sf-title">Vérifier le résumé</div><p>Nombre de photos estimé, durée, batteries nécessaires. Si OK, passez à l'étape suivante.</p></div></div>
+      <div class="sf"><div class="sf-dot">2</div><div class="sf-body"><div class="sf-title">Sauvegarder la mission</div><p>Appuyer sur "Sauvegarder". Elle sera disponible hors ligne sur le terrain, même sans connexion internet.</p></div></div>
+      <div class="sf"><div class="sf-dot">3</div><div class="sf-body"><div class="sf-title">Sur le terrain : charger et lancer</div><p>Waypoints → charger la mission sauvegardée → "Lancer" → le drone décolle automatiquement et exécute la grille.</p></div></div>
+    </div>
+  </div>
+
+  <div class="nav-btns"><button onclick="go(4)">← Planification</button><button class="nxt" onclick="go(6)">Réglages caméra →</button></div>
+</div>
+
+<!-- ── CHAPITRE 6 ── -->
+<div class="chapter" id="chap-6">
+  <div class="back-link" onclick="showHome()">← Accueil</div>
+  <div class="chap-hero"><div class="chap-n">06</div><div><div class="chap-h-title">Régler la caméra</div><div class="chap-h-sub">Mode Manuel, ISO, vitesse — le pourquoi et le comment</div></div></div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Pourquoi</div>
+    <div class="section-title2">Le mode Auto est interdit</div>
+    <p class="section-desc">En mode Auto, le drone ajuste l'exposition à chaque photo selon la luminosité locale. Résultat : vos 300 photos ont 300 expositions différentes, le logiciel assemble un patchwork de couleurs, le modèle est inutilisable. En mode Manuel, une seule exposition fixe pour toute la mission.</p>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Réglages à appliquer</div>
+    <div class="section-title2">Les valeurs exactes</div>
+    <div class="cam-grid">
+      <div class="cam-setting"><div class="cam-param">Mode expo</div><div class="cam-val highlight">M</div><div class="cam-why">Manuel obligatoire</div></div>
+      <div class="cam-setting"><div class="cam-param">Vitesse</div><div class="cam-val highlight">1/1000 s</div><div class="cam-why">Évite le flou de bougé</div></div>
+      <div class="cam-setting"><div class="cam-param">ISO</div><div class="cam-val highlight">100</div><div class="cam-why">Minimum de bruit</div></div>
+      <div class="cam-setting"><div class="cam-param">Balance blancs</div><div class="cam-val highlight">5500 K</div><div class="cam-why">Fixe la couleur</div></div>
+      <div class="cam-setting"><div class="cam-param">Format</div><div class="cam-val highlight">JPEG</div><div class="cam-why">Léger, suffisant</div></div>
+      <div class="cam-setting"><div class="cam-param">Objectif</div><div class="cam-val highlight">24 mm</div><div class="cam-why">Objectif principal</div></div>
+    </div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Détail</div>
+    <div class="section-title2">Comprendre chaque réglage</div>
+
+    <div class="card2" onclick="tog(this)">
+      <div class="card2-head"><div class="card2-icon">⚡</div><div class="card2-title">Vitesse d'obturation — le plus important</div><div class="card2-chevron">▼</div></div>
+      <div class="card2-body">
+        <p>La vitesse détermine combien de temps le capteur est exposé. Si trop lente, le drone (qui avance à 10 m/s) produit des photos floues.</p>
+        <div class="ok-box" style="margin:10px 0">Règle simple : toujours 1/1000 s ou plus rapide en plein soleil.</div>
+        <p><strong>Formule exacte :</strong> vitesse mini = (vitesse vol en m/s × focale mm) ÷ 10<br>À 10 m/s et 24 mm → 1/240 s minimum. Prenez une marge de sécurité : 1/1000 s est parfait.</p>
+        <p style="margin-top:8px">Si les photos sont trop sombres avec 1/1000 s → augmentez l'ISO (100 → 200 → 400) plutôt que de ralentir l'obturation.</p>
+      </div>
+    </div>
+
+    <div class="card2" onclick="tog(this)">
+      <div class="card2-head"><div class="card2-icon">☀</div><div class="card2-title">ISO — la sensibilité</div><div class="card2-chevron">▼</div></div>
+      <div class="card2-body">
+        <p>L'ISO amplifie la lumière captée. Plus élevé = plus lumineux mais plus "bruité" (grain visible). En plein jour :</p>
+        <div class="grid2" style="margin:10px 0">
+          <div class="metric"><div class="v">ISO 100</div><div class="l">Idéal — beau temps, soleil direct</div></div>
+          <div class="metric"><div class="v">ISO 200</div><div class="l">Légèrement couvert, acceptable</div></div>
+          <div class="metric"><div class="v">ISO 400</div><div class="l">Couvert, limite acceptable</div></div>
+          <div class="metric"><div class="v">ISO 800+</div><div class="l">Éviter — bruit excessif sur les images</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card2" onclick="tog(this)">
+      <div class="card2-head"><div class="card2-icon">🎨</div><div class="card2-title">Balance des blancs — fixer la couleur</div><div class="card2-chevron">▼</div></div>
+      <div class="card2-body">
+        <p>En Auto, la balance des blancs change entre chaque photo (une photo à l'ombre est plus "froide" qu'une au soleil). Fixez-la manuellement :</p>
+        <div class="table-wrap"><table class="t" style="margin-top:10px"><thead><tr><th>Conditions</th><th>Valeur</th></tr></thead><tbody>
+          <tr><td>Ciel clair / soleil direct</td><td>5200–5500 K (préréglage "Lumière du jour")</td></tr>
+          <tr><td>Ciel voilé / nuageux</td><td>5500–6200 K (préréglage "Nuageux")</td></tr>
+          <tr><td>Heure dorée (matin/soir)</td><td>4000–4500 K</td></tr>
+        </tbody></table></div>
+        <p style="margin-top:8px">Dans DJI Fly : réglages caméra → "AWB" → toucher pour ouvrir → choisir "Manuel" ou un préréglage.</p>
+      </div>
+    </div>
+
+    <div class="card2" onclick="tog(this)">
+      <div class="card2-head"><div class="card2-icon">📷</div><div class="card2-title">JPEG ou DNG (RAW) ?</div><div class="card2-chevron">▼</div></div>
+      <div class="card2-body">
+        <div class="table-wrap"><table class="t"><thead><tr><th>Format</th><th>Poids</th><th>Usage</th></tr></thead><tbody>
+          <tr><td>JPEG Fin</td><td>5–15 Mo</td><td>Recommandé pour débuter — léger, traitement rapide, qualité suffisante</td></tr>
+          <tr><td>DNG (RAW)</td><td>25–50 Mo</td><td>Pro — meilleure dynamique, correction exposition possible en post</td></tr>
+        </tbody></table></div>
+        <p style="margin-top:8px">Dans DJI Fly : réglages caméra → "Format" → sélectionner JPEG (ou RAW+JPEG si vous avez assez d'espace sur la carte SD).</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns"><button onclick="go(5)">← Programmer le vol</button><button class="nxt" onclick="go(7)">Sur le terrain →</button></div>
+</div>
+
+<!-- ── CHAPITRE 7 ── -->
+<div class="chapter" id="chap-7">
+  <div class="back-link" onclick="showHome()">← Accueil</div>
+  <div class="chap-hero"><div class="chap-n">07</div><div><div class="chap-h-title">Sur le terrain</div><div class="chap-h-sub">Checklist complète avant de lancer la mission</div></div></div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Arrivée sur site</div>
+    <div class="section-title2">Première reconnaissance</div>
+    <div class="checklist">
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Choisir un point de décollage plat, stable, dégagé de toute végétation haute</span></div>
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Vérifier visuellement la zone : câbles électriques, antennes, lignes haute tension non repérés sur carte</span></div>
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Poser et relever les GCPs si nécessaire (avant le vol, pendant que la lumière est bonne)</span></div>
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Vérifier la météo locale — le vent en altitude peut être 2× plus fort qu'au sol</span></div>
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Prévenir les personnes présentes à proximité que vous allez faire voler un drone</span></div>
+    </div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Dans DJI Fly</div>
+    <div class="section-title2">Vérifications pré-décollage</div>
+    <div class="checklist">
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Retour vidéo visible et net dans l'app</span></div>
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>GPS : attendre 10–12 satellites minimum et le message "Prêt pour le vol" en vert</span></div>
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Boussole : si icône orange clignotante → calibrer (suivre les instructions de l'app)</span></div>
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Batterie drone : 100 % — ne jamais démarrer une mission sous 90 %</span></div>
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Espace libre carte SD vérifié (estimation dans le résumé de mission)</span></div>
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Réglages caméra vérifiés une dernière fois : mode M, ISO 100, 1/1000 s, BB fixe</span></div>
+    </div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Test préliminaire</div>
+    <div class="section-title2">Vol de test — 2 minutes</div>
+    <p class="section-desc">Avant de lancer la mission automatique, effectuez un bref vol manuel pour tout vérifier :</p>
+    <div class="checklist">
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Monter à 10–15 m en manuel → vérifier stabilité, pas de vibrations anormales</span></div>
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Prendre 3–4 photos manuellement → vérifier sur l'écran : nette, bien exposée, pas de flou</span></div>
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Estimer la force du vent en altitude (dérive lente = faible vent ; dérive prononcée = vent fort)</span></div>
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Revenir au sol → batterie ne doit pas avoir baissé de plus de 5 % en 2 min</span></div>
+    </div>
+    <div class="warn-box">Si les photos du vol test sont floues ou mal exposées, ne lancez PAS la mission. Revenez au chapitre 6 et ajustez les réglages caméra.</div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Lancement</div>
+    <div class="section-title2">Démarrer la mission automatique</div>
+    <div class="step-flow">
+      <div class="sf"><div class="sf-dot">1</div><div class="sf-body"><div class="sf-title">Charger la mission sauvegardée</div><p>Waypoints → sélectionner votre mission → vérifier le résumé (altitude, surface, durée).</p></div></div>
+      <div class="sf"><div class="sf-dot">2</div><div class="sf-body"><div class="sf-title">Appuyer sur "Lancer"</div><p>Le drone décolle automatiquement, monte à l'altitude programmée, et commence la grille. Une barre de progression apparaît en bas.</p></div></div>
+      <div class="sf"><div class="sf-dot">3</div><div class="sf-body"><div class="sf-title">Surveillance passive</div><p>Vous n'avez plus à toucher les joysticks. Restez près du point de décollage, les yeux sur le drone ET sur l'espace aérien autour de vous.</p></div></div>
+    </div>
+  </div>
+
+  <div class="nav-btns"><button onclick="go(6)">← Caméra</button><button class="nxt" onclick="go(8)">Vol & après →</button></div>
+</div>
+
+<!-- ── CHAPITRE 8 ── -->
+<div class="chapter" id="chap-8">
+  <div class="back-link" onclick="showHome()">← Accueil</div>
+  <div class="chap-hero"><div class="chap-n">08</div><div><div class="chap-h-title">Pendant et après le vol</div><div class="chap-h-sub">Surveiller, gérer les batteries, vérifier, traiter</div></div></div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Surveillance</div>
+    <div class="section-title2">Ce qu'il faut surveiller</div>
+    <div class="table-wrap"><table class="t"><thead><tr><th>Indicateur</th><th>Seuil d'alerte</th><th>Action</th></tr></thead><tbody>
+      <tr><td>Batterie drone</td><td>&lt; 30 %</td><td>Préparer atterrissage. À 20 % : RTH automatique.</td></tr>
+      <tr><td>Compteur photos</td><td>Bloqué / arrêté</td><td>Carte SD pleine ou déconnectée. Interrompre et vérifier.</td></tr>
+      <tr><td>Barre de progression</td><td>—</td><td>Indique le % de grille effectuée. Permet d'estimer le temps restant.</td></tr>
+      <tr><td>Trafic aérien</td><td>Aéronef signalé</td><td>RTH immédiat (appui long sur bouton RTH). Priorité absolue.</td></tr>
+      <tr><td>Signal RC</td><td>Icône faible</td><td>Se déplacer en direction du drone pour améliorer la liaison.</td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Multi-batteries</div>
+    <div class="section-title2">Changer de batterie en cours de mission</div>
+    <div class="step-flow">
+      <div class="sf"><div class="sf-dot">1</div><div class="sf-body"><div class="sf-title">Batterie à 30–35 % → appuyer sur Pause</div><p>Le drone s'arrête sur place et reste en vol stationnaire. La progression est sauvegardée.</p></div></div>
+      <div class="sf"><div class="sf-dot">2</div><div class="sf-body"><div class="sf-title">Retour au sol</div><p>Appuyer sur "Retour au point de départ" ou guider manuellement jusqu'au sol.</p></div></div>
+      <div class="sf"><div class="sf-dot">3</div><div class="sf-body"><div class="sf-title">Changer la batterie rapidement</div><p>Rallumer le drone. Reconnecter l'app. Vérifier le retour vidéo et le GPS.</p></div></div>
+      <div class="sf"><div class="sf-dot">4</div><div class="sf-body"><div class="sf-title">Reprendre la mission</div><p>Waypoints → "Reprendre la mission". Le drone reprend depuis le dernier waypoint enregistré.</p></div></div>
+    </div>
+    <div class="warn-box">Changez de batterie en moins de 5 min si possible. Si la lumière change (nuage passager), ajustez l'exposition avant de reprendre pour maintenir l'homogénéité des photos.</div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Contrôle qualité — CRITIQUE</div>
+    <div class="section-title2">Vérifier avant de quitter le terrain</div>
+    <p class="section-desc">Ne rangez pas le matériel avant ces vérifications. Dernière chance avant de rentrer.</p>
+    <div class="checklist">
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Nombre total de photos = nombre estimé lors de la planification (tolérance ±5)</span></div>
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Ouvrir 10–15 photos aléatoirement : nettes, bien exposées, pas de flou de bougé</span></div>
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Progression dans l'app : 100 % de la grille effectuée</span></div>
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Si GCPs utilisés : noter les coordonnées et photographier chaque cible depuis le sol</span></div>
+      <div class="ci" onclick="ck(this)"><div class="cb"></div><span>Métadonnées GPS présentes sur quelques photos (galerie → infos → coordonnées visibles)</span></div>
+    </div>
+  </div>
+
+  <div class="section-block reveal">
+    <div class="section-tag">Traitement</div>
+    <div class="section-title2">Du bureau à l'orthophoto</div>
+    <p class="section-desc">Copiez les photos sur votre ordinateur. Pour débuter, OpenDroneMap (WebODM) est gratuit et open source.</p>
+    <div class="table-wrap"><table class="t"><thead><tr><th>Étape</th><th>Description</th><th>Durée</th></tr></thead><tbody>
+      <tr><td>1. Import photos</td><td>Chargement + vérification GPS EXIF</td><td>2–5 min</td></tr>
+      <tr><td>2. Alignement</td><td>Le logiciel trouve les points communs entre les images (SfM)</td><td>15–60 min</td></tr>
+      <tr><td>3. Intégration GCPs</td><td>Marquage manuel des cibles sur les photos</td><td>15–30 min</td></tr>
+      <tr><td>4. Nuage de points dense</td><td>Reconstruction 3D point par point</td><td>30 min – 3 h</td></tr>
+      <tr><td>5. Orthomosaïque</td><td>Photo aérienne géoréférencée (export GeoTIFF)</td><td>10–30 min</td></tr>
+      <tr><td>6. MNT</td><td>Modèle Numérique de Terrain (export GeoTIFF / ASC)</td><td>10–20 min</td></tr>
+    </tbody></table></div>
+    <div class="table-wrap" style="margin-top:14px"><table class="t"><thead><tr><th>Logiciel</th><th>Prix</th><th>Recommandé pour</th></tr></thead><tbody>
+      <tr><td>OpenDroneMap / WebODM</td><td>Gratuit</td><td>Débuter, projets personnels</td></tr>
+      <tr><td>Agisoft Metashape</td><td>~180 €/an</td><td>Semi-pro, interface intuitive</td></tr>
+      <tr><td>Pix4Dmapper</td><td>~350 €/mois</td><td>Professionnel, très précis</td></tr>
+    </tbody></table></div>
+    <div class="ok-box" style="margin-top:16px">Mission terminée. Vous avez couvert toutes les étapes d'une mission de photogrammétrie complète avec le DJI Air 3S.</div>
+  </div>
+
+  <div class="nav-btns"><button onclick="go(7)">← Terrain</button><button class="nxt" onclick="showHome()">Retour à l'accueil ↩</button></div>
+</div>
+
+</div><!-- /main -->
+
+<footer>
+  <p>Guide photogrammétrie · DJI Air 3S · <span>France</span> · Catégorie OPEN DGAC</p>
+  <p style="margin-top:6px">Généré avec Claude · Contenu indicatif — vérifiez toujours la réglementation en vigueur</p>
+</footer>
+
+<script>
+var cur = 0;
+var done = {};
+
+function showHome() {
+  document.getElementById('home-view').style.display = 'block';
+  document.querySelectorAll('.chapter').forEach(c => c.classList.remove('active'));
+  updateNav(0);
+  updateProgress(0);
+  cur = 0;
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function go(n) {
+  document.getElementById('home-view').style.display = 'none';
+  document.querySelectorAll('.chapter').forEach(c => c.classList.remove('active'));
+  document.getElementById('chap-' + n).classList.add('active');
+  updateNav(n);
+  updateProgress(n);
+  if (cur > 0) done[cur] = true;
+  cur = n;
+  markDone();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+  setTimeout(revealItems, 100);
+}
+
+function updateNav(n) {
+  var pills = document.querySelectorAll('.pill');
+  pills.forEach((p, i) => p.classList.toggle('active', i === n));
+}
+
+function updateProgress(n) {
+  var pct = n === 0 ? 0 : Math.round((n / 8) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+}
+
+function markDone() {
+  for (var k in done) {
+    var cc = document.getElementById('cc-' + k);
+    if (cc) cc.classList.add('done');
+  }
+}
+
+function ck(el) {
+  el.classList.toggle('checked');
+  var box = el.querySelector('.cb');
+  box.textContent = el.classList.contains('checked') ? '✓' : '';
+}
+
+function tog(card) {
+  card.classList.toggle('open');
+}
+
+function revealItems() {
+  document.querySelectorAll('.reveal').forEach(function(el) {
+    el.classList.add('visible');
+  });
+}
+
+// Scroll reveal observer
+var observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(e) {
+    if (e.isIntersecting) e.target.classList.add('visible');
+  });
+}, {threshold: 0.1});
+document.querySelectorAll('.reveal').forEach(function(el) {
+  observer.observe(el);
+});
+
+// Calculator
+function calc() {
+  var alt = parseInt(document.getElementById('sl-alt').value);
+  var surf = parseInt(document.getElementById('sl-surf').value);
+  var front = parseInt(document.getElementById('sl-front').value) / 100;
+  var lat = parseInt(document.getElementById('sl-lat').value) / 100;
+
+  document.getElementById('o-alt').value = alt + ' m';
+  document.getElementById('o-surf').value = surf + ' ha';
+  document.getElementById('o-front').value = Math.round(front * 100) + ' %';
+  document.getElementById('o-lat').value = Math.round(lat * 100) + ' %';
+
+  var gsd = Math.round(alt / 24 * 0.21 * 10) / 10;
+  var fovW = 36 * (alt / 24);
+  var fovH = 24 * (alt / 24);
+  var lineSpacing = Math.round(fovW * (1 - lat));
+  var side = Math.round(Math.sqrt(surf * 10000));
+  var nLines = Math.ceil(side / lineSpacing) + 2;
+  var stepFront = Math.round(fovH * (1 - front));
+  var photosLine = Math.ceil(side / stepFront) + 2;
+  var totalPhotos = nLines * photosLine;
+  var distKm = (nLines * side) / 1000;
+  var durMin = Math.round(distKm * 1000 / 10 / 60);
+  var bats = Math.ceil(durMin / 38);
+
+  document.getElementById('cr-gsd').textContent = gsd + ' cm';
+  document.getElementById('cr-photos').textContent = totalPhotos;
+  document.getElementById('cr-dur').textContent = durMin + ' min';
+  document.getElementById('cr-bat').textContent = bats;
+}
+calc();
+
+// Sticky progress scroll
+window.addEventListener('scroll', function() {
+  if (cur === 0) return;
+  var total = document.body.scrollHeight - window.innerHeight;
+  var scrolled = window.scrollY;
+  var pct = ((cur - 1) / 8 * 100) + (scrolled / total) * (1 / 8 * 100);
+  document.getElementById('progress-bar').style.width = Math.min(pct, cur / 8 * 100) + '%';
+});
+</script>
+</body>
+</html>

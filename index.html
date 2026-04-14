@@ -917,6 +917,25 @@ footer span{color:var(--accent)}
       <div class="sl-row"><label>Altitude de vol</label><input type="range" min="40" max="120" value="80" step="10" id="sl-alt" oninput="calc()"><output id="o-alt">80 m</output></div>
       <div class="sl-row"><label>Recouvrement frontal</label><input type="range" min="70" max="90" value="80" step="5" id="sl-front" oninput="calc()"><output id="o-front">80 %</output></div>
       <div class="sl-row"><label>Recouvrement latéral</label><input type="range" min="60" max="85" value="70" step="5" id="sl-lat" oninput="calc()"><output id="o-lat">70 %</output></div>
+      <div class="sl-row"><label>Vitesse du vent</label><input type="range" min="0" max="15" value="5" step="1" id="sl-wind" oninput="calc()"><output id="o-wind">5 m/s</output></div>
+      <div class="sl-row"><label>Vitesse drone</label><input type="range" min="4" max="12" value="8" step="1" id="sl-drone" oninput="calc()"><output id="o-drone">8 m/s</output></div>
+
+      <!-- Trigger mode -->
+      <div style="margin:10px 0 6px;font-size:12px;color:var(--text2)">Mode de déclenchement photo</div>
+      <div class="toggle-row" style="margin-bottom:8px">
+        <button class="tog-btn active" id="trig-dist" onclick="setTrigger('dist')">Par distance · DJI Fly (recommandé)</button>
+        <button class="tog-btn" id="trig-time" onclick="setTrigger('time')">Par intervalle de temps</button>
+      </div>
+
+      <!-- Wind effect panel -->
+      <div id="wind-panel" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin:8px 0;font-size:12px;line-height:1.8">
+        <div style="display:flex;gap:20px;flex-wrap:wrap">
+          <div>↑ Face au vent &nbsp;<b id="wp-speed-up" style="color:var(--accent)">—</b> m/s sol</div>
+          <div>↓ Vent dans le dos &nbsp;<b id="wp-speed-down" style="color:var(--accent3)">—</b> m/s sol</div>
+        </div>
+        <div id="wind-warning" style="margin-top:6px;display:none"></div>
+      </div>
+
       <div class="calc-result" id="calc-res">
         <div class="cr-item"><div class="crv" id="cr-gsd">—</div><div class="crl">GSD (cm/px)</div></div>
         <div class="cr-item"><div class="crv" id="cr-surf">—</div><div class="crl">Surface (ha)</div></div>
@@ -1335,13 +1354,20 @@ document.querySelectorAll('.reveal').forEach(function(el) {
 });
 
 // ── Zone configurator state ──
-var _shape = 'rect', _terrain = 'flat', _orient = 'auto', _windAngle = 0;
+var _shape = 'rect', _terrain = 'flat', _orient = 'auto', _windAngle = 0, _trigMode = 'dist';
 var _windDirs = [
   {a:0,   l:'Nord'},  {a:45,  l:'Nord-Est'}, {a:90,  l:'Est'},
   {a:135, l:'Sud-Est'},{a:180, l:'Sud'},      {a:225, l:'Sud-Ouest'},
   {a:270, l:'Ouest'}, {a:315, l:'Nord-Ouest'}
 ];
 var _windIdx = 0;
+
+function setTrigger(t) {
+  _trigMode = t;
+  ['dist','time'].forEach(function(id){ document.getElementById('trig-'+id).classList.remove('active'); });
+  document.getElementById('trig-'+t).classList.add('active');
+  calc();
+}
 
 function cycleWind(e) {
   _windIdx = (_windIdx + 1) % _windDirs.length;
@@ -1396,15 +1422,39 @@ function setOrient(o) {
 
 // ── Main calculator ──
 function calc() {
-  var alt  = parseInt(document.getElementById('sl-alt').value) || 80;
+  var alt   = parseInt(document.getElementById('sl-alt').value) || 80;
   var front = parseInt(document.getElementById('sl-front').value) / 100;
   var lat   = parseInt(document.getElementById('sl-lat').value) / 100;
+  var wind  = parseInt(document.getElementById('sl-wind').value) || 0;
+  var drone = parseInt(document.getElementById('sl-drone').value) || 8;
   var zoneW = Math.max(50, parseInt(document.getElementById('dim-w').value) || 300);
   var zoneH = Math.max(50, parseInt(document.getElementById('dim-h').value) || 300);
 
   document.getElementById('o-alt').value   = alt + ' m';
   document.getElementById('o-front').value = Math.round(front * 100) + ' %';
   document.getElementById('o-lat').value   = Math.round(lat * 100) + ' %';
+  document.getElementById('o-wind').value  = wind + ' m/s';
+  document.getElementById('o-drone').value = drone + ' m/s';
+
+  // Ground speeds
+  var gsUp   = Math.max(1, drone - wind);
+  var gsDown = drone + wind;
+  document.getElementById('wp-speed-up').textContent   = gsUp;
+  document.getElementById('wp-speed-down').textContent = gsDown;
+
+  // Warning for time-based mode
+  var warnEl = document.getElementById('wind-warning');
+  if (_trigMode === 'time' && wind > 0) {
+    var extraPhotos = Math.round((gsDown / gsUp - 1) * 100);
+    var overlapLoss = Math.round((1 - gsUp / gsDown) * (1 - front) * 100);
+    warnEl.style.display = 'block';
+    warnEl.innerHTML = '<span style="color:var(--danger)">⚠ Mode temps :</span> la branche descendante ('+gsDown+' m/s sol) nécessite <b>'+extraPhotos+'% de photos en plus</b> par rapport à la branche montante pour maintenir le même recouvrement. Perte de recouvrement frontal estimée : <b>~'+overlapLoss+'%</b>. <span style="color:var(--accent2)">Préférer le déclenchement par distance dans DJI Fly.</span>';
+  } else if (_trigMode === 'dist') {
+    warnEl.style.display = wind > 0 ? 'block' : 'none';
+    warnEl.innerHTML = wind > 0 ? '<span style="color:var(--accent2)">✓ Mode distance (DJI Fly) : le recouvrement est maintenu sur les deux branches malgré la différence de vitesse sol.</span>' : '';
+  } else {
+    warnEl.style.display = 'none';
+  }
 
   // GSD: Air 3S sensor 17.3×13mm, focal 24mm equiv (actual 12.38mm), 8064×6048px
   var gsd = Math.round(alt * 13 / 24 / 6048 * 1000 * 10) / 10; // cm/px approx
@@ -1447,11 +1497,11 @@ function calc() {
   document.getElementById('cr-bat').textContent    = bats;
   document.getElementById('cr-lines').textContent  = nLines;
 
-  drawWaypoints(zoneW, zoneH, lineSpacing, stepFront, orient, nLines, photosLine, coverFactor);
+  drawWaypoints(zoneW, zoneH, lineSpacing, stepFront, orient, nLines, photosLine, coverFactor, gsUp, gsDown);
 }
 
 // ── Waypoints SVG renderer ──
-function drawWaypoints(zoneW, zoneH, lineSpacing, stepFront, orient, nLines, photosLine, cover) {
+function drawWaypoints(zoneW, zoneH, lineSpacing, stepFront, orient, nLines, photosLine, cover, gsUp, gsDown) {
   var svg = document.getElementById('wp-svg');
   var VW = 320, VH = 200, pad = 24;
   var areaW = VW - pad*2, areaH = VH - pad*2;
@@ -1480,44 +1530,49 @@ function drawWaypoints(zoneW, zoneH, lineSpacing, stepFront, orient, nLines, pho
   var lines = '', dots = '', dotCount = 0;
   var clipId = 'wpclip';
 
+  // Line i=0 = upwind (face au vent), i=1 = downwind (vent dans le dos), alternating
+  // For time-based: downwind dots are spaced at stepSc * (gsDown/gsUp) — wider apart
+  var stepUp   = stepSc;                                             // upwind spacing (SVG px)
+  var stepDown = (gsUp && gsDown) ? stepSc * (gsDown / gsUp) : stepSc; // downwind: faster = wider gaps
+
   for (var i = 0; i < nLines; i++) {
-    var forward = (i % 2 === 0);
+    var isUpwind = (i % 2 === 0); // first branch always upwind (face au vent)
+    var forward  = isUpwind;
+    var lineColor = '#4f9cf9';
+    var dotColor  = isUpwind ? '#7ee8a2' : (_trigMode === 'time' ? '#f96060' : '#7ee8a2');
+    var dotStep   = (_trigMode === 'time') ? (isUpwind ? stepUp : stepDown) : stepUp;
     var x1,y1,x2,y2;
+
     if (orient === 'ew') {
       var ly = oy + lineSpSc * i;
       if (ly > oy + dH + lineSpSc) break;
       x1 = ox; x2 = ox + dW; y1 = y2 = ly;
       if (!forward) { var tmp=x1; x1=x2; x2=tmp; }
-      lines += '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#4f9cf9" stroke-width="1.2" stroke-linecap="round" clip-path="url(#'+clipId+')"/>';
-      // Arrow
-      var ax = forward ? x2-6 : x2+6;
-      lines += '<polygon points="'+(x2+(forward?-5:5))+','+(y2-3)+' '+(x2+(forward?1:-1))+','+y2+' '+(x2+(forward?-5:5))+','+(y2+3)+'" fill="#4f9cf9" opacity="0.7"/>';
-      // Trigger dots
-      var nx = Math.ceil(dW / stepSc);
+      lines += '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+lineColor+'" stroke-width="1.2" stroke-linecap="round" clip-path="url(#'+clipId+')"/>';
+      lines += '<polygon points="'+(x2+(forward?-5:5))+','+(y2-3)+' '+(x2+(forward?1:-1))+','+y2+' '+(x2+(forward?-5:5))+','+(y2+3)+'" fill="'+lineColor+'" opacity="0.7"/>';
+      var nx = Math.ceil(dW / dotStep);
       for (var j = 0; j <= nx; j++) {
-        var dx = forward ? ox + stepSc*j : ox+dW - stepSc*j;
-        if (dotCount < 200) {
-          dots += '<circle cx="'+dx+'" cy="'+ly+'" r="1.5" fill="#7ee8a2" clip-path="url(#'+clipId+')"/>';
-          dotCount++;
-        }
+        var dx = forward ? ox + dotStep*j : ox+dW - dotStep*j;
+        if (dotCount < 200) { dots += '<circle cx="'+dx+'" cy="'+ly+'" r="1.5" fill="'+dotColor+'" clip-path="url(#'+clipId+')"/>'; dotCount++; }
       }
     } else {
       var lx = ox + lineSpSc * i;
       if (lx > ox + dW + lineSpSc) break;
       x1 = x2 = lx; y1 = oy; y2 = oy + dH;
       if (!forward) { var tmp2=y1; y1=y2; y2=tmp2; }
-      lines += '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#4f9cf9" stroke-width="1.2" stroke-linecap="round" clip-path="url(#'+clipId+')"/>';
-      lines += '<polygon points="'+(x2-3)+','+(y2+(forward?-5:5))+' '+x2+','+(y2+(forward?1:-1))+' '+(x2+3)+','+(y2+(forward?-5:5))+'" fill="#4f9cf9" opacity="0.7"/>';
-      var ny = Math.ceil(dH / stepSc);
+      lines += '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+lineColor+'" stroke-width="1.2" stroke-linecap="round" clip-path="url(#'+clipId+')"/>';
+      lines += '<polygon points="'+(x2-3)+','+(y2+(forward?-5:5))+' '+x2+','+(y2+(forward?1:-1))+' '+(x2+3)+','+(y2+(forward?-5:5))+'" fill="'+lineColor+'" opacity="0.7"/>';
+      var ny = Math.ceil(dH / dotStep);
       for (var jj = 0; jj <= ny; jj++) {
-        var dy = forward ? oy+stepSc*jj : oy+dH-stepSc*jj;
-        if (dotCount < 200) {
-          dots += '<circle cx="'+lx+'" cy="'+dy+'" r="1.5" fill="#7ee8a2" clip-path="url(#'+clipId+')"/>';
-          dotCount++;
-        }
+        var dy = forward ? oy+dotStep*jj : oy+dH-dotStep*jj;
+        if (dotCount < 200) { dots += '<circle cx="'+lx+'" cy="'+dy+'" r="1.5" fill="'+dotColor+'" clip-path="url(#'+clipId+')"/>'; dotCount++; }
       }
     }
   }
+
+  // Legend: add upwind/downwind line labels
+  var upLabel   = '<text x="'+ox+'" y="'+(oy-4)+'" font-size="8" fill="#7ee8a2" font-family="monospace">↑ face au vent</text>';
+  var downLabel = '';
 
   // Turn connectors
   var turns = '';
@@ -1543,7 +1598,9 @@ function drawWaypoints(zoneW, zoneH, lineSpacing, stepFront, orient, nLines, pho
   document.getElementById('wp-orient-label').textContent = orientLabel;
 
   // Legend
-  var legend = '<circle cx="'+(VW-80)+'" cy="'+(VH-10)+'" r="2.5" fill="#7ee8a2"/><text x="'+(VW-74)+'" y="'+(VH-7)+'" font-size="8" fill="#555b72" font-family="monospace">déclenchement photo</text>';
+  var legend =
+    '<circle cx="14" cy="'+(VH-10)+'" r="2.5" fill="#7ee8a2"/><text x="20" y="'+(VH-7)+'" font-size="8" fill="#555b72" font-family="monospace">↑ face vent</text>'+
+    (_trigMode==='time' ? '<circle cx="90" cy="'+(VH-10)+'" r="2.5" fill="#f96060"/><text x="96" y="'+(VH-7)+'" font-size="8" fill="#555b72" font-family="monospace">↓ vent dos (temps)</text>' : '<circle cx="90" cy="'+(VH-10)+'" r="2.5" fill="#7ee8a2"/><text x="96" y="'+(VH-7)+'" font-size="8" fill="#555b72" font-family="monospace">↓ vent dos (dist.)</text>');
 
   // Wind arrow (top-right corner)
   var wx = VW - 28, wy = 28, wLen = 18;
@@ -1563,7 +1620,7 @@ function drawWaypoints(zoneW, zoneH, lineSpacing, stepFront, orient, nLines, pho
   svg.innerHTML =
     '<defs><clipPath id="'+clipId+'"><path d="'+zonePath+'"/></clipPath></defs>'+
     '<path d="'+zonePath+'" fill="rgba(79,156,249,0.05)" stroke="rgba(79,156,249,0.35)" stroke-width="1.5" stroke-dasharray="5 4"/>'+
-    turns + lines + dots + startMark + windSvg + legend;
+    turns + lines + dots + upLabel + downLabel + startMark + windSvg + legend;
 
   // Stats bar
   var distKm = Math.round(nLines * (orient==='ew'?zoneW:zoneH) * cover / 100) / 10;

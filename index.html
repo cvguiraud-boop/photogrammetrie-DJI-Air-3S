@@ -816,11 +816,11 @@ footer span{color:var(--accent)}
   <div class="section-block reveal">
     <div class="section-tag">Paramètres clés</div>
     <div class="section-title2">Altitude et GSD</div>
-    <p class="section-desc">Le GSD (Ground Sampling Distance) = taille d'un pixel au sol. Air 3S : capteur 1 pouce, focale 24 mm.</p>
+    <p class="section-desc">Le GSD (Ground Sampling Distance) = taille d'un pixel au sol. Air 3S : capteur 1 pouce (12,8 × 9,6 mm), focale réelle 8,9 mm (24 mm équivalent plein format), résolution 8064 × 6048 px.</p>
     <div class="grid4">
-      <div class="metric"><div class="v">~0,9 cm</div><div class="l">GSD à 40 m</div></div>
-      <div class="metric"><div class="v">~1,7 cm</div><div class="l">GSD à 80 m</div></div>
-      <div class="metric"><div class="v">~2,5 cm</div><div class="l">GSD à 120 m</div></div>
+      <div class="metric"><div class="v">~0,71 cm</div><div class="l">GSD à 40 m</div></div>
+      <div class="metric"><div class="v">~1,43 cm</div><div class="l">GSD à 80 m</div></div>
+      <div class="metric"><div class="v">~2,14 cm</div><div class="l">GSD à 120 m</div></div>
       <div class="metric"><div class="v">120 m</div><div class="l">Limite légale</div></div>
     </div>
     <div class="warn-box">120 m AGL maximum en catégorie OPEN en France. En zone CTR (aéroport proche), la limite peut descendre à 50 m sans accord préalable.</div>
@@ -1149,6 +1149,19 @@ footer span{color:var(--accent)}
           <tr><td>DNG (RAW)</td><td>25–50 Mo</td><td>Pro — meilleure dynamique, correction exposition possible en post</td></tr>
         </tbody></table></div>
         <p style="margin-top:8px">Dans DJI Fly : réglages caméra → "Format" → sélectionner JPEG (ou RAW+JPEG si vous avez assez d'espace sur la carte SD).</p>
+      </div>
+    </div>
+
+    <div class="card2" onclick="tog(this)">
+      <div class="card2-head"><div class="card2-icon">⚠</div><div class="card2-title">50 MP ou 12 MP — choix critique pour la photogrammétrie</div><div class="card2-chevron">▼</div></div>
+      <div class="card2-body">
+        <p style="margin-bottom:10px">L'Air 3S propose deux résolutions principales. Ce choix a un impact direct sur l'intervalle de déclenchement et donc sur le recouvrement frontal de votre mission.</p>
+        <div class="table-wrap"><table class="t"><thead><tr><th>Mode</th><th>Résolution</th><th>Intervalle mini</th><th>À 10 m/s → espacement photos</th></tr></thead><tbody>
+          <tr><td><b style="color:var(--warn)">50 MP</b></td><td>8064 × 6048</td><td style="color:var(--danger)">5 secondes</td><td style="color:var(--danger)">50 m entre photos</td></tr>
+          <tr><td><b style="color:var(--accent2)">12 MP</b></td><td>4032 × 3024</td><td style="color:var(--accent2)">2–3 secondes</td><td style="color:var(--accent2)">20–30 m entre photos</td></tr>
+        </tbody></table></div>
+        <div class="warn-box" style="margin-top:10px">En mode 50 MP à 10 m/s, l'espacement de 50 m entre photos correspond à un recouvrement frontal d'environ 42 % à 80 m d'altitude — insuffisant pour une reconstruction fiable (minimum recommandé : 75 %). <b>Pour la plupart des missions de cartographie, le mode 12 MP est préférable.</b> La résolution reste excellente (GSD ~2,86 cm à 80 m) et l'intervalle 2–3 s garantit un recouvrement correct.</div>
+        <p style="margin-top:8px">Si vous tenez au 50 MP : réduire la vitesse de vol à <b>4–5 m/s maximum</b> pour maintenir un recouvrement frontal ≥ 75 %.</p>
       </div>
     </div>
   </div>
@@ -1482,12 +1495,13 @@ function calc() {
     warnEl.style.display = 'none';
   }
 
-  // GSD: Air 3S sensor 17.3×13mm, focal 24mm equiv (actual 12.38mm), 8064×6048px
-  var gsd = Math.round(alt * 13 / 24 / 6048 * 1000 * 10) / 10; // cm/px approx
+  // GSD: Air 3S sensor 1-inch (12.8×9.6mm), actual focal 8.89mm (24mm equiv), 8064×6048px
+  // Formula: GSD (cm/px) = (sensor_height_mm / pixel_height) / focal_actual_mm × altitude_m × 100
+  var gsd = Math.round(alt * 9.6 / 6048 / 8.89 * 100 * 10) / 10; // cm/px
 
-  // FOV footprint at altitude
-  var fovW = 17.3 * alt / 12.38;  // metres
-  var fovH = 13   * alt / 12.38;
+  // FOV footprint at altitude (metres)
+  var fovW = 12.8 * alt / 8.89;
+  var fovH = 9.6  * alt / 8.89;
 
   // Line spacing (lateral) and trigger interval (frontal)
   var lineSpacing = fovW * (1 - lat);

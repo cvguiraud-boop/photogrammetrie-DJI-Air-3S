@@ -1610,9 +1610,19 @@ function drawWaypoints(zoneW, zoneH, lineSpacing, stepFront, orient, nLines, pho
     }
   }
 
-  // Legend: add upwind/downwind line labels
-  var upLabel   = '<text x="'+ox+'" y="'+(oy-4)+'" font-size="8" fill="#7ee8a2" font-family="monospace">↑ face au vent</text>';
-  var downLabel = '';
+  // Labels on first (upwind) and second (downwind) lines — away from start marker
+  var upLabel = '', downLabel = '';
+  var wa2 = _windAngle % 180;
+  var isDiagWind = (wa2 >= 22 && wa2 <= 68) || (wa2 >= 112 && wa2 <= 158);
+  if (orient === 'ns') {
+    // first line at ox, label on middle of line to the right
+    upLabel   = '<text x="'+(ox+5)+'" y="'+(oy + dH*0.35)+'" font-size="7" fill="#7ee8a2" font-family="monospace" transform="rotate(-90,'+(ox+5)+','+(oy+dH*0.35)+')">↑ face vent</text>';
+    if (nLines > 1) downLabel = '<text x="'+(ox+lineSpSc+5)+'" y="'+(oy+dH*0.65)+'" font-size="7" fill="'+ (_trigMode==='time'?'#f96060':'#7ee8a2')+'" font-family="monospace" transform="rotate(-90,'+(ox+lineSpSc+5)+','+(oy+dH*0.65)+')">↓ vent dos</text>';
+  } else {
+    // first line at oy, label above the line offset to the right
+    upLabel   = '<text x="'+(ox + dW*0.35)+'" y="'+(oy-5)+'" font-size="7" fill="#7ee8a2" font-family="monospace">↑ face vent</text>';
+    if (nLines > 1) downLabel = '<text x="'+(ox+dW*0.55)+'" y="'+(oy+lineSpSc-3)+'" font-size="7" fill="'+ (_trigMode==='time'?'#f96060':'#7ee8a2')+'" font-family="monospace">↓ vent dos</text>';
+  }
 
   // Turn connectors
   var turns = '';
@@ -1628,13 +1638,13 @@ function drawWaypoints(zoneW, zoneH, lineSpacing, stepFront, orient, nLines, pho
     }
   }
 
-  // Start marker
-  var sx = (orient==='ew') ? ox : ox;
-  var sy = (orient==='ew') ? oy : oy;
-  var startMark = '<circle cx="'+sx+'" cy="'+sy+'" r="4" fill="#4f9cf9"/><text x="'+(sx+6)+'" y="'+(sy-5)+'" font-size="9" fill="#4f9cf9" font-family="monospace">Départ</text>';
+  // Start marker — text below the dot to avoid overlap with line labels
+  var startMark = '<circle cx="'+ox+'" cy="'+oy+'" r="4" fill="#4f9cf9"/>'+
+    '<text x="'+(ox + (orient==='ns' ? 7 : 4))+'" y="'+(oy + (orient==='ns' ? 4 : -6))+'" font-size="8" fill="#4f9cf9" font-family="monospace">Départ</text>';
 
-  // Orient label
+  // Orient label + diagonal wind warning
   var orientLabel = orient==='ew' ? 'lignes E → O' : 'lignes N → S';
+  if (isDiagWind) orientLabel += ' · ⚠ vent diagonal (≈45°) — compromis';
   document.getElementById('wp-orient-label').textContent = orientLabel;
 
   // Legend

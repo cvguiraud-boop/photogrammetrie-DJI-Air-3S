@@ -874,10 +874,36 @@ footer span{color:var(--accent)}
     </div>
     <div class="terrain-hint" id="terrain-hint"></div>
 
+    <!-- Wind direction -->
+    <div style="font-size:12px;color:var(--text2);margin:10px 0 6px">Direction du vent dominant</div>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:10px;flex-wrap:wrap">
+      <div style="position:relative;width:80px;height:80px;flex-shrink:0">
+        <svg id="wind-compass" width="80" height="80" viewBox="0 0 80 80" style="cursor:pointer" onclick="cycleWind(event)">
+          <circle cx="40" cy="40" r="36" fill="var(--bg3)" stroke="var(--border2)" stroke-width="1.5"/>
+          <text x="40" y="10" text-anchor="middle" font-size="8" fill="var(--text3)" font-family="monospace">N</text>
+          <text x="40" y="76" text-anchor="middle" font-size="8" fill="var(--text3)" font-family="monospace">S</text>
+          <text x="8"  y="43" text-anchor="middle" font-size="8" fill="var(--text3)" font-family="monospace">O</text>
+          <text x="72" y="43" text-anchor="middle" font-size="8" fill="var(--text3)" font-family="monospace">E</text>
+          <g id="wind-arrow" transform="rotate(0,40,40)">
+            <line x1="40" y1="40" x2="40" y2="14" stroke="#4f9cf9" stroke-width="2.5" stroke-linecap="round"/>
+            <polygon points="40,10 36,18 44,18" fill="#4f9cf9"/>
+            <line x1="40" y1="40" x2="40" y2="64" stroke="var(--text3)" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="3 2"/>
+          </g>
+        </svg>
+      </div>
+      <div style="flex:1;min-width:160px">
+        <div style="font-size:13px;color:var(--text);margin-bottom:4px">Vent : <b id="wind-label" style="color:var(--accent)">Nord</b></div>
+        <div style="font-size:11px;color:var(--text3);line-height:1.5">Cliquer sur la boussole pour changer la direction. Les lignes de vol sont orientées <b style="color:var(--text2)">dans le même axe que le vent</b> pour plus de stabilité.</div>
+      </div>
+    </div>
+    <div class="terrain-hint show" style="color:var(--accent2);background:rgba(126,232,162,0.07);border-color:rgba(126,232,162,0.2)">
+      Règle : oriente toujours les lignes <b>dans le même axe que le vent dominant</b> — le drone vole face au vent sur un aller (stable, trajectoire précise) et vent dans le dos au retour. Un vent de travers sur chaque ligne serait le pire cas. L'orientation ci-dessous s'ajuste automatiquement.
+    </div>
+
     <!-- Orientation -->
     <div style="font-size:12px;color:var(--text2);margin:10px 0 6px">Orientation des lignes de vol</div>
     <div class="toggle-row">
-      <button class="tog-btn active" id="or-auto" onclick="setOrient('auto')">Auto (grand axe)</button>
+      <button class="tog-btn active" id="or-auto" onclick="setOrient('auto')">Auto (axe du vent)</button>
       <button class="tog-btn" id="or-ns" onclick="setOrient('ns')">N → S</button>
       <button class="tog-btn" id="or-ew" onclick="setOrient('ew')">E → O</button>
     </div>
@@ -1309,7 +1335,21 @@ document.querySelectorAll('.reveal').forEach(function(el) {
 });
 
 // ── Zone configurator state ──
-var _shape = 'rect', _terrain = 'flat', _orient = 'auto';
+var _shape = 'rect', _terrain = 'flat', _orient = 'auto', _windAngle = 0;
+var _windDirs = [
+  {a:0,   l:'Nord'},  {a:45,  l:'Nord-Est'}, {a:90,  l:'Est'},
+  {a:135, l:'Sud-Est'},{a:180, l:'Sud'},      {a:225, l:'Sud-Ouest'},
+  {a:270, l:'Ouest'}, {a:315, l:'Nord-Ouest'}
+];
+var _windIdx = 0;
+
+function cycleWind(e) {
+  _windIdx = (_windIdx + 1) % _windDirs.length;
+  _windAngle = _windDirs[_windIdx].a;
+  document.getElementById('wind-arrow').setAttribute('transform','rotate('+_windAngle+',40,40)');
+  document.getElementById('wind-label').textContent = _windDirs[_windIdx].l;
+  calc();
+}
 
 function setShape(s) {
   _shape = s;
@@ -1380,7 +1420,11 @@ function calc() {
   // Determine flight direction based on orientation + shape
   var flyW, flyH; // flyW = length of each line, flyH = width covered by lines
   var orient = _orient;
-  if (orient === 'auto') orient = (zoneW >= zoneH) ? 'ew' : 'ns';
+  if (orient === 'auto') {
+    // Parallel to wind: wind mostly N/S → lines N-S ; wind mostly E/W → lines E-W
+    var wa = _windAngle % 180;
+    orient = (wa < 45 || wa >= 135) ? 'ns' : 'ew';
+  }
 
   if (orient === 'ew') { flyW = zoneW; flyH = zoneH; }
   else                 { flyW = zoneH; flyH = zoneW; }
@@ -1501,11 +1545,25 @@ function drawWaypoints(zoneW, zoneH, lineSpacing, stepFront, orient, nLines, pho
   // Legend
   var legend = '<circle cx="'+(VW-80)+'" cy="'+(VH-10)+'" r="2.5" fill="#7ee8a2"/><text x="'+(VW-74)+'" y="'+(VH-7)+'" font-size="8" fill="#555b72" font-family="monospace">déclenchement photo</text>';
 
+  // Wind arrow (top-right corner)
+  var wx = VW - 28, wy = 28, wLen = 18;
+  var wRad = (_windAngle - 90) * Math.PI / 180; // SVG 0° = right, so offset -90
+  var wdx = Math.cos(wRad) * wLen, wdy = Math.sin(wRad) * wLen;
+  // Arrow tip
+  var wx2 = wx + wdx, wy2 = wy + wdy;
+  // Perpendicular for arrowhead
+  var wax = -wdy / wLen * 5, way = wdx / wLen * 5;
+  var windSvg =
+    '<circle cx="'+wx+'" cy="'+wy+'" r="12" fill="rgba(249,168,79,0.1)" stroke="rgba(249,168,79,0.3)" stroke-width="1"/>'+
+    '<line x1="'+wx+'" y1="'+wy+'" x2="'+wx2+'" y2="'+wy2+'" stroke="#f9a84f" stroke-width="2" stroke-linecap="round"/>'+
+    '<polygon points="'+wx2+','+wy2+' '+(wx2-wdx/wLen*7+wax)+','+(wy2-wdy/wLen*7+way)+' '+(wx2-wdx/wLen*7-wax)+','+(wy2-wdy/wLen*7-way)+'" fill="#f9a84f"/>'+
+    '<text x="'+wx+'" y="'+(wy+22)+'" text-anchor="middle" font-size="7" fill="#f9a84f" font-family="monospace">vent</text>';
+
   svg.setAttribute('viewBox','0 0 '+VW+' '+VH);
   svg.innerHTML =
     '<defs><clipPath id="'+clipId+'"><path d="'+zonePath+'"/></clipPath></defs>'+
     '<path d="'+zonePath+'" fill="rgba(79,156,249,0.05)" stroke="rgba(79,156,249,0.35)" stroke-width="1.5" stroke-dasharray="5 4"/>'+
-    turns + lines + dots + startMark + legend;
+    turns + lines + dots + startMark + windSvg + legend;
 
   // Stats bar
   var distKm = Math.round(nLines * (orient==='ew'?zoneW:zoneH) * cover / 100) / 10;
